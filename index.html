@@ -41,6 +41,7 @@
         <canvas id = "canvas"></canvas>
 
         <script src="imageFilters.js"></script>
+        <script src="imageFunctions.js"></script>
         <script>
         var canvas = document.getElementById('canvas');
         function setup(){
@@ -58,6 +59,7 @@
 
                 //down sample it
                 downSampledImg = DownSampleImage(imgd);
+                downSampledImg = DownSampleImage(downSampledImg);
                 downSampledImg = DownSampleImage(downSampledImg);
 
                 //edge detect the downsampled image
