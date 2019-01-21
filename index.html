@@ -36,9 +36,20 @@
         <h1>Number of correspondences</h1>
         <h2 id="numCorespText"></h2>
 
-        <img id="sbsImage" src="20190119_162421.jpg" style="width:10%">
-
         <canvas id = "canvas"></canvas>
+        <br/>
+        <img id="sbsImage" src="20190119_162421.jpg" style="width:30%">
+        <br/>
+        <img id="anaglyphImage1" src="seagull.jpg" style="width:30%">
+        <br/>
+        <img id="anaglyphImage2" src="wolfieEntryway.jpg" style="width:30%">
+        <br/>
+        <img id="anaglyphImage3" src="scaleBG.jpg" style="width:30%">
+        <br/>
+        <img id="anaglyphImage1" src="skylight.jpg" style="width:30%">
+        <br/>
+
+        
 
         <script src="imageFilters.js"></script>
         <script src="imageFunctions.js"></script>
@@ -60,17 +71,23 @@
                 //down sample it
                 downSampledImg = DownSampleImage(imgd);
                 downSampledImg = DownSampleImage(downSampledImg);
-                downSampledImg = DownSampleImage(downSampledImg);
+                //downSampledImg = DownSampleImage(downSampledImg);
 
                 //edge detect the downsampled image
                 edgeDetectedImgd = EdgeDetect(downSampledImg);
 
                 //detect features from the edges
                 featuresList = DetectFeatures(edgeDetectedImgd);
+
+                for( f in featuresList )
+                {
+                        f = featuresList[f]
+                        console.log(f.x + " " + f.y);
+                }
                 
 
                 // Draw the ImageData back to the canvas
-                ctx.clearRect(0,0,canvas.width,canvas.height);
+                //ctx.clearRect(0,0,canvas.width,canvas.height);
                 ctx.putImageData(edgeDetectedImgd, 0, 0);
             };
             image.src = '20190119_162421.jpg';
