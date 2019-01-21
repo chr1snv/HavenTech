@@ -1,0 +1,134 @@
+
+<!DOCTYPE HTML>
+<html lang="en"> 
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link rel="shortcut icon" href="snowflake.ico">
+    <link rel="stylesheet" type="text/css" href="default.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="colorbox-master/example2/colorbox.css" />
+    <script src="colorbox-master/jquery.colorbox-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/1.4.11/jquery.scrollTo.min.js"></script>
+    <script src="https://www.chartjs.org/dist/2.7.3/Chart.bundle.js"></script>
+    <script src="https://www.chartjs.org/samples/latest/utils.js"></script>
+    <script src="index.js"></script>
+    <title>
+      
+    </title>
+  </head>
+
+  <body>
+
+        <table style="background-color:#99c2e440; margin:auto; border-style:dotted;">
+                <tr>
+                        <th>
+                                <img src="snowflake.png" style="width:80px;"></img>
+                        </th>
+                        <th>
+                                <h1>SBS to Anaglyph</h1>
+                        </th>
+                </tr>
+        </table>
+
+       
+
+        <h1>Number of correspondences</h1>
+        <h2 id="numCorespText"></h2>
+
+        <img id="sbsImage" src="20190119_162421.jpg" style="width:10%">
+
+        <canvas id = "canvas"></canvas>
+
+        <script src="imageFilters.js"></script>
+        <script>
+        var canvas = document.getElementById('canvas');
+        function setup(){
+            
+            var ctx = canvas.getContext('2d');
+            canvas.width = 800;
+            canvas.height = 600;
+            var image = new Image();
+            image.onload = function () {
+                //draw the image to the canvas
+                ctx.drawImage(image,0,0,canvas.width,canvas.height);
+
+                //read the canvas into an ImageData
+                imgd             = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                //down sample it
+                downSampledImg = DownSampleImage(imgd);
+                downSampledImg = DownSampleImage(downSampledImg);
+
+                //edge detect the downsampled image
+                edgeDetectedImgd = EdgeDetect(downSampledImg);
+
+                //detect features from the edges
+                featuresList = DetectFeatures(edgeDetectedImgd);
+                
+
+                // Draw the ImageData back to the canvas
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.putImageData(edgeDetectedImgd, 0, 0);
+            };
+            image.src = '20190119_162421.jpg';
+        };
+        window.onload = setup;
+        setup();
+
+        sbsImage = document.getElementById("sbsImage");
+
+        function printMousePos(event) {
+                xPos = event.offsetX;//clientX;// - canvas.x;
+                yPos = event.offsetY;//clientY;// - canvas.y;
+                document.getElementById("numCorespText").innerHTML =
+                        "clientX: " + xPos +
+                        " - clientY: " + yPos;
+        }
+        canvas.addEventListener("click", printMousePos);
+
+        /*
+        var ctx = document.getElementById("myChart").getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [$labelValues],
+                datasets: [{
+                    label: '$label',
+                    data: [$dataValues],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ]/*,
+                    borderColor: [
+                        'rgba(255,99,132,1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+                }
+            }
+        });
+        */
+        </script>
+
+
+  </body>
+
+</html>
