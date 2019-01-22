@@ -14,7 +14,7 @@ class Feature
                 var feature = featureDict[str];
                 if (feature != undefined)
                 {
-                        feature.neighboringFeatures[this.x+":"+this.y] = this;
+                        feature.neighboringFeatures[this.locationString()] = this;
                         this.neighboringFeatures[str] = feature;
                 }
         }
@@ -52,48 +52,65 @@ class Feature
 
                 //f 1-1   f 1 0   f 1 1   bottom row
 
-                this.neighboringFeatures = {};
                 //top row
+                this.neighboringFeatures = {};
+                this.lookUpAndAddNeighborLink(-2,-2,featureDict);
+                this.lookUpAndAddNeighborLink(-1,-2,featureDict);
+                this.lookUpAndAddNeighborLink( 0,-2,featureDict);
+                this.lookUpAndAddNeighborLink( 1,-2,featureDict);
+                this.lookUpAndAddNeighborLink( 2,-2,featureDict);
+                //second to top row
+                this.lookUpAndAddNeighborLink(-2,-1,featureDict);
                 this.lookUpAndAddNeighborLink(-1,-1,featureDict);
                 this.lookUpAndAddNeighborLink( 0,-1,featureDict);
                 this.lookUpAndAddNeighborLink( 1,-1,featureDict);
+                this.lookUpAndAddNeighborLink( 2,-1,featureDict);
                 //middle row
+                this.lookUpAndAddNeighborLink(-2, 0,featureDict);
                 this.lookUpAndAddNeighborLink(-1, 0,featureDict);
                 //this.lookUpAndAddNeighborLink( 0, 0,featureDict); //this
                 this.lookUpAndAddNeighborLink( 1, 0,featureDict);
-                //bottom row
+                this.lookUpAndAddNeighborLink( 2, 0,featureDict);
+                //second to bottom row
+                this.lookUpAndAddNeighborLink(-2, 1,featureDict);
                 this.lookUpAndAddNeighborLink(-1, 1,featureDict);
                 this.lookUpAndAddNeighborLink( 0, 1,featureDict);
                 this.lookUpAndAddNeighborLink( 1, 1,featureDict);
+                this.lookUpAndAddNeighborLink( 2, 1,featureDict);
+                //bottom row
+                this.lookUpAndAddNeighborLink(-2, 2,featureDict);
+                this.lookUpAndAddNeighborLink(-1, 2,featureDict);
+                this.lookUpAndAddNeighborLink( 0, 2,featureDict);
+                this.lookUpAndAddNeighborLink( 1, 2,featureDict);
+                this.lookUpAndAddNeighborLink( 2, 2,featureDict);
         }
 
 }
 
 function DetectFeatures(imgd)
 {
-        var pix = imgd.data;
-
         var threshold = 128;
 
-        var canidateFeaturesDict = findCanidateFeatures(pix, threshold);
+        var canidateFeaturesDict = findCanidateFeatures(imgd, threshold);
 
-        var localMaximalFeaturesDict = findLocalMaximalFeatures(pix, canidateFeaturesDict);
+        var localMaximalFeaturesDict = findLocalMaximalFeatures(imgd, canidateFeaturesDict);
         
         return localMaximalFeaturesDict;
 }
 
-function findCanidateFeatures(pix, threshold)
+function findCanidateFeatures(imgd, threshold)
 {
-
-        var heightLastVariance = 0;
-        var widthLastVariance  = 0;
+        var pix = imgd.data;
+        
 
         var featureDict = {};
 
         //find all the canidate features
-        for (var ih = 1, nh = imgd.height-1; ih < nh; ih += 1) {
-                widthLastVariance = 0;
-                for (var iw = 1, nw = imgd.width; iw < nw; iw += 1) {
+        for (var ih = 1, nh = imgd.height-1; ih < nh; ih += 1)
+        {
+                
+                for (var iw = 1, nw = imgd.width-1; iw < nw; iw += 1)
+                {
 
                         var i = ih * imgd.width*4 + iw*4;
 
@@ -115,6 +132,7 @@ function findCanidateFeatures(pix, threshold)
                         }
 
                 }
+                
         }
 
         return featureDict;
@@ -122,8 +140,10 @@ function findCanidateFeatures(pix, threshold)
 }
 
 
-function findLocalMaximalFeatures(pix, featureDict)
+function findLocalMaximalFeatures(imgd, featureDict)
 {
+        var pix = imgd.data;
+
         //find the local maxima features
         var localMaximalFeatures = {};
         for ( featureIdx in featureDict )

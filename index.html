@@ -66,18 +66,18 @@
                 ctx.drawImage(image,0,0,canvas.width,canvas.height);
 
                 //read the canvas into an ImageData
-                imgd             = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var imgd             = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
                 //down sample it
-                downSampledImg = DownSampleImage(imgd);
-                downSampledImg = DownSampleImage(downSampledImg);
+                var downSampledImg = DownSampleImage(imgd);
+                //downSampledImg = DownSampleImage(downSampledImg);
                 //downSampledImg = DownSampleImage(downSampledImg);
 
                 //edge detect the downsampled image
-                edgeDetectedImgd = EdgeDetect(downSampledImg);
+                var edgeDetectedImgd = EdgeDetect(downSampledImg);
 
                 //detect features from the edges
-                featuresList = DetectFeatures(edgeDetectedImgd);
+                var featuresList = DetectFeatures(edgeDetectedImgd);
 
                 for( f in featuresList )
                 {
