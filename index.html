@@ -82,15 +82,16 @@
                 for( f in featuresList )
                 {
                         f = featuresList[f]
-                        console.log(f.x + " " + f.y);
                 }
-                
 
                 // Draw the ImageData back to the canvas
                 //ctx.clearRect(0,0,canvas.width,canvas.height);
                 ctx.putImageData(edgeDetectedImgd, 0, 0);
             };
             image.src = '20190119_162421.jpg';
+
+            update = setInterval(CanvasUpdate, 60);
+            canvas.onmousemove = handleMouseMove;
         };
         window.onload = setup;
         setup();
@@ -105,6 +106,17 @@
                         " - clientY: " + yPos;
         }
         canvas.addEventListener("click", printMousePos);
+
+
+        function handleMouseMove(event) 
+        {
+                xPos = event.offsetX;
+                yPos = event.offsetY;
+        }
+        
+        function CanvasUpdate()
+        {
+        }       
 
         /*
         var ctx = document.getElementById("myChart").getContext('2d');

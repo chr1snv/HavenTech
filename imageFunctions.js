@@ -8,11 +8,37 @@ class Feature
                 return this.x+":"+this.y;
         }
 
-        lookUpAndAddNeighborLink(dx,dy)
+        lookUpAndAddNeighborLink(dx,dy, featureDict)
         {
-                str = this.x+dx+":"+this.y+dy;
+                var str = (this.x+dx)+":"+(this.y+dy);
+                var feature = featureDict[str];
+                if (feature != undefined)
+                {
+                        feature.neighboringFeatures[this.x+":"+this.y] = this;
+                        this.neighboringFeatures[str] = feature;
+                }
         }
-        constructor(xin, yin, variancein)
+        //looks at neighboring features and returns true if it
+        //has the highest variance of them
+        isLocalMaxima()
+        {
+                for (featureIdx in this.neighboringFeatures)
+                {
+                        var neighboringFeature = this.neighboringFeatures[featureIdx];
+                        var neighboringVariance = neighboringFeature.variance;
+                        var neighboringVarianceIsGreaterThanThisVariance = neighboringVariance >= this.variance;
+                        if( neighboringVarianceIsGreaterThanThisVariance )
+                        {
+                                //a neighbor has greater variance than this feature
+                                //this is not a local maxima
+                                return false;
+                        }
+                }
+                //no neighbor was found with greater variance
+                //this is a local maxima
+                return true;
+        }
+        constructor(xin, yin, variancein, featureDict)
         {
                 this.x = xin;
                 this.y = yin;
@@ -20,44 +46,25 @@ class Feature
 
                 //append links to all of the neighboring features for later local maxima finding
 
-                //f00 f01 f02
-                //f10 f11 f12
-                //f20 f21 f22
+                //f-1-1   f-1 0   f-1 1   top    row
+                
+                //f 0-1   f 0 0   f 0 1   middle row
+
+                //f 1-1   f 1 0   f 1 1   bottom row
 
                 this.neighboringFeatures = {};
                 //top row
-                var f00 = featureDict[this.x-1+":"+this.y-1];
-                if( f00 != undefined )
-                {
-                        this.neighboringFeatures[f00.locationString()] = f00;
-                        f00.neighboringFeatures[this.locationString()] = this;
-                }
-                var f01 = featureDict[this.x-0+":"+this.y-1];
-                if( f01 != undefined )
-                        this.neighboringFeatures.push( f01 );
-                var f02 = featureDict[this.x+1+":"+this.y-1];
-                if( f02 != undefined )
-                        this.neighboringFeatures.push( f02 );
+                this.lookUpAndAddNeighborLink(-1,-1,featureDict);
+                this.lookUpAndAddNeighborLink( 0,-1,featureDict);
+                this.lookUpAndAddNeighborLink( 1,-1,featureDict);
                 //middle row
-                var f10 = featureDict[this.x-1+":"+this.y-0];
-                if( f02 != undefined )
-                        this.neighboringFeatures.push( f10 );
-                var f11 = featureDict[this.x-0+":"+this.y-0];
-                if( f02 != undefined )
-                        this.neighboringFeatures.push( f11 );
-                var f12 = featureDict[this.x+1+":"+this.y-0];
-                if( f12 != undefined )
-                        this.neighboringFeatures.push( f12 );
+                this.lookUpAndAddNeighborLink(-1, 0,featureDict);
+                //this.lookUpAndAddNeighborLink( 0, 0,featureDict); //this
+                this.lookUpAndAddNeighborLink( 1, 0,featureDict);
                 //bottom row
-                var f20 = featureDict[this.x-1+":"+this.y+1];
-                if( f20 != undefined )
-                        this.neighboringFeatures.push( f20 );
-                var f21 = featureDict[this.x-0+":"+this.y+1];
-                if( f21 != undefined )
-                        this.neighboringFeatures.push( f21 );
-                var f22 = featureDict[this.x+1+":"+this.y+1];
-                if( f22 != undefined )
-                        this.neighboringFeatures.push( f22 );
+                this.lookUpAndAddNeighborLink(-1, 1,featureDict);
+                this.lookUpAndAddNeighborLink( 0, 1,featureDict);
+                this.lookUpAndAddNeighborLink( 1, 1,featureDict);
         }
 
 }
@@ -66,23 +73,33 @@ function DetectFeatures(imgd)
 {
         var pix = imgd.data;
 
-        heightLastVariance = 0;
-        widthLastVariance  = 0;
+        var threshold = 128;
 
-        threshold = 128;
+        var canidateFeaturesDict = findCanidateFeatures(pix, threshold);
 
-        featureDict = {};
+        var localMaximalFeaturesDict = findLocalMaximalFeatures(pix, canidateFeaturesDict);
+        
+        return localMaximalFeaturesDict;
+}
 
-        ws = width*4; //the width stride
+function findCanidateFeatures(pix, threshold)
+{
+
+        var heightLastVariance = 0;
+        var widthLastVariance  = 0;
+
+        var featureDict = {};
+
+        //find all the canidate features
         for (var ih = 1, nh = imgd.height-1; ih < nh; ih += 1) {
                 widthLastVariance = 0;
                 for (var iw = 1, nw = imgd.width; iw < nw; iw += 1) {
 
-                        i = ih * imgd.width*4 + iw*4;
+                        var i = ih * imgd.width*4 + iw*4;
 
-                        hD = pix[i+0]-127;
-                        vD = pix[i+1]-127;
-                        dD = pix[i+2]-127;
+                        var hD = pix[i+0]-127;
+                        var vD = pix[i+1]-127;
+                        var dD = pix[i+2]-127;
 
                         variance = Math.abs(hD)+Math.abs(vD)+Math.abs(dD);
 
@@ -95,18 +112,41 @@ function DetectFeatures(imgd)
                                 newFeature = new Feature(iw,ih,variance, featureDict);
                                 featureDict[iw+":"+ih] = newFeature;
 
-                                
-
-
                         }
 
                 }
         }
+
         return featureDict;
+
 }
 
 
-function findLocalMaximalFeatures(featureDict)
+function findLocalMaximalFeatures(pix, featureDict)
 {
-        
+        //find the local maxima features
+        var localMaximalFeatures = {};
+        for ( featureIdx in featureDict )
+        {
+                var feature = featureDict[featureIdx];
+                var isLocalMaxima = feature.isLocalMaxima();
+                if( isLocalMaxima )
+                {
+                        //add the feature to the local maxima dictionary
+                        localMaximalFeatures[ feature.locationString() ] = feature;
+                }
+                else
+                {
+                        //set the pixel color to indicate it is not a local maxima
+                        var iw = feature.x;
+                        var ih = feature.y;
+                        var i = ih * imgd.width*4 + iw*4;
+                        
+                        pix[i+0] = 255;
+                        pix[i+1] = 127;
+                        pix[i+2] = 0;
+                        
+                }
+        }
+        return localMaximalFeatures;
 }
