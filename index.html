@@ -38,6 +38,16 @@
 
         <canvas id = "canvas"></canvas>
         <br/>
+
+        <form id="settingsForm">
+                <h3>Settings</h3>
+                Down Sample Times<br/>
+                <input id='downsampleTimes' value='0' type="number"></input><br/>
+                <button type="button" onclick="runConverter()">Run</button>
+        </form>
+
+        <canvas id = "anaglyphCanvas"></canvas>
+        <br/>
         <img id="anaglyphImage1" src="seagull.jpg" style="width:30%">
         <br/>
         <img id="anaglyphImage2" src="wolfieEntryway.jpg" style="width:30%">
@@ -52,59 +62,40 @@
         <script src="imageFilters.js"></script>
         <script src="imageFunctions.js"></script>
         <script src="featureOperations.js"></script>
+        <script src="AnaglyphConversion.js"></script>
         <script>
         var canvas = document.getElementById('canvas');
+        var image = new Image();
+
+        var ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        //get the context of the anaglyph display canvas
+        var anaglyphCanvas = document.getElementById('anaglyphCanvas');
+        var aCtx = anaglyphCanvas.getContext('2d');
+        anaglyphCanvas.width = 800;
+        anaglyphCanvas.height = 600;
+
         function setup()
         {
-            
-            var ctx = canvas.getContext('2d');
-            canvas.width = 800;
-            canvas.height = 600;
-            var image = new Image();
-            image.onload = function ()
-            {
-                //draw the image to the canvas
-                ctx.drawImage(image,0,0,canvas.width,canvas.height);
-
-                //read the canvas into an ImageData
-                var imgd             = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-                var numTimesToDownsample = 1;
-                var downSampleMultiplier = Math.pow(2,numTimesToDownsample);
-
-                //down sample it
-                var downSampledImg = imgd;
-                for(var i = 0; i < numTimesToDownsample; ++i)
-                        var downSampledImg = DownSampleImage(downSampledImg);
-
-                //edge detect the downsampled image
-                var edgeDetectedImgd = EdgeDetect(downSampledImg);
-
-                //detect features from the edges
-                var threshold = 20;
-                var imageBorderMargin = 30;
-                var featuresList = DetectFeatures( edgeDetectedImgd, imgd, downSampleMultiplier, threshold, imageBorderMargin );
-
-                //ctx.putImageData(edgeDetectedImgd, 0, 0);
-
-
-                var maxVerticalDifference = 40;
-                var maxDifference = 100;//80;
-                var correspondences = FindCorrespondences(featuresList, maxDifference, maxVerticalDifference, imgd.width/2/downSampleMultiplier);
-
-                DrawCorrespondences(ctx, correspondences, downSampleMultiplier);
-
-                // Draw the ImageData back to the canvas
-                //ctx.clearRect(0,0,canvas.width,canvas.height);
-                
-            };
-            image.src = 'rawSBSImages/20190118_094811.jpg';
-
-            update = setInterval(CanvasUpdate, 60);
-            canvas.onmousemove = handleMouseMove;
+                update = setInterval(CanvasUpdate, 60);
+                canvas.onmousemove = handleMouseMove;
         };
         window.onload = setup;
-        setup();
+
+        function runConverter()
+        {
+                //event.preventDefault();
+
+                var numTimesToDownsample = document.getElementById("downsampleTimes").value;
+
+                image.onload = function() { ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample); }
+                console.log("image onload function set");
+
+                image.src = 'rawSBSImages/20190118_094811.jpg';
+                console.log("imageSrc set");
+        }
 
         sbsImage = document.getElementById("sbsImage");
 

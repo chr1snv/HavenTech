@@ -6,7 +6,7 @@ function isOnRightSideOfImage(feature, halfImageX)
         return false;
 }
 
-function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference, halfImageX)
+function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference, expectedHorizontalDifference, maxHorizontalDifference, halfImageX)
 {
         var correspondences = [];
         for( var featureIdx0 in featuresList )
@@ -22,9 +22,14 @@ function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference
                                 var feature1OnRight = isOnRightSideOfImage(feature1, halfImageX);
 
                                 var verticalDifference = Math.abs(feature1.y - feature0.y);
-
-                                //check features are on opposite halfs of the image
-                                if( feature1OnRight != feature0OnRight && verticalDifference < maxVerticalDifference)
+                                var horizontalDifference = Math.abs(feature1.x - feature0.x);
+                                var horizontalDeviation = Math.abs(horizontalDifference - expectedHorizontalDifference);
+                                //check features are on opposite halfs of the image and
+                                //they are reasonably vertically and
+                                //horizontally aligned
+                                if( feature1OnRight    != feature0OnRight       && 
+                                    verticalDifference  < maxVerticalDifference &&
+                                    horizontalDeviation < maxHorizontalDifference)
                                 {
 
                                         var difference = feature1.comparePixelValues(feature0);
@@ -47,13 +52,19 @@ function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference
         return correspondences;
 }
 
-function DrawFeature(f, color, ctx, downSampleMultiplier)
+function DrawFeature(f, color, ctx, downSampleMultiplier, label)
 {
+        var xPt = f.x*downSampleMultiplier;
+        var yPt = f.y*downSampleMultiplier;
+
         var radius = 2;
         ctx.beginPath();
-        ctx.arc(f.x*downSampleMultiplier, f.y*downSampleMultiplier, radius, 0, 2 * Math.PI, false);
+        ctx.arc(xPt, yPt, radius, 0, 2 * Math.PI, false);
         ctx.fillStyle = color;
         ctx.fill();
+
+        ctx.font = '5pt arial';
+        ctx.fillText(label, xPt-10, yPt+radius*3); 
 }
 
 var colors =
@@ -75,19 +86,25 @@ function DrawCorrespondences(ctx, featuresList, downSampleMultiplier)
                 colorIdx = (colorIdx + 1) % colors.length;
 
                 f = featuresList[featureIdx];
-                DrawFeature(f, color, ctx, downSampleMultiplier);
+                DrawFeature(f, color, ctx, downSampleMultiplier, featureIdx);
 
                 for( foIdx in f.matchingFeatures)
                 {
                         fo = f.matchingFeatures[foIdx];
-                        DrawFeature(fo, color, ctx, downSampleMultiplier);
+
+                        var fx  = f.x*downSampleMultiplier;
+                        var fy  = f.y*downSampleMultiplier;
+
+                        var fxo = fo.x*downSampleMultiplier;
+                        var fyo = fo.y*downSampleMultiplier;
+
+                        DrawFeature(fo, color, ctx, downSampleMultiplier, 'd'+f.comparePixelValues(fo));
                         ctx.beginPath();
-                        ctx.moveTo(f.x*downSampleMultiplier, f.y*downSampleMultiplier);
-                        ctx.lineTo(fo.x*downSampleMultiplier, fo.y*downSampleMultiplier);
+                        ctx.moveTo(fx, fy);
+                        ctx.lineTo(fxo, fyo);
                         ctx.lineWidth = 0.1;
                         ctx.strokeStyle = color;
                         ctx.stroke();
-                        //console.log('adding line' + fo.x + " " + fo.y);
                 }                      
         }
 }

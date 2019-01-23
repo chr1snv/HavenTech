@@ -49,9 +49,17 @@ class Feature
 
                 this.pixelValues = [];
 
-                for (var ih = this.y*downsampleMultiplier-2, nh = this.y*downsampleMultiplier+2; ih < nh; ih += 1)
+                var squareStoredRegionHalfWidth = 4;
+
+                for (var ih = this.y*downsampleMultiplier-squareStoredRegionHalfWidth,
+                         nh = this.y*downsampleMultiplier+squareStoredRegionHalfWidth;
+                        ih < nh;
+                        ih += 1)
                 {
-                        for (var iw = this.x*downsampleMultiplier-2, nw = this.x*downsampleMultiplier+2; iw < nw; iw += 1)
+                        for (var iw = this.x*downsampleMultiplier-squareStoredRegionHalfWidth,
+                                 nw = this.x*downsampleMultiplier+2;
+                                iw < nw;
+                                iw += 1)
                         {
                                 var i = ih * imgd.width*4 + iw*4;
                                 this.pixelValues.push(pix[i]  );
@@ -79,7 +87,7 @@ class Feature
                 this.x = xin;
                 this.y = yin;
 
-                this.storePixelValues(imgd,1);// origimgd, downsampleMultiplier);//imgd, 1);
+                this.storePixelValues( origimgd, downsampleMultiplier);//imgd, 1);
 
                 this.variance = variancein;
 
