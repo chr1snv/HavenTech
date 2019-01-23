@@ -38,8 +38,6 @@
 
         <canvas id = "canvas"></canvas>
         <br/>
-        <img id="sbsImage" src="20190119_162421.jpg" style="width:30%">
-        <br/>
         <img id="anaglyphImage1" src="seagull.jpg" style="width:30%">
         <br/>
         <img id="anaglyphImage2" src="wolfieEntryway.jpg" style="width:30%">
@@ -53,42 +51,54 @@
 
         <script src="imageFilters.js"></script>
         <script src="imageFunctions.js"></script>
+        <script src="featureOperations.js"></script>
         <script>
         var canvas = document.getElementById('canvas');
-        function setup(){
+        function setup()
+        {
             
             var ctx = canvas.getContext('2d');
             canvas.width = 800;
             canvas.height = 600;
             var image = new Image();
-            image.onload = function () {
+            image.onload = function ()
+            {
                 //draw the image to the canvas
                 ctx.drawImage(image,0,0,canvas.width,canvas.height);
 
                 //read the canvas into an ImageData
                 var imgd             = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+                var numTimesToDownsample = 1;
+                var downSampleMultiplier = Math.pow(2,numTimesToDownsample);
+
                 //down sample it
-                var downSampledImg = DownSampleImage(imgd);
-                //downSampledImg = DownSampleImage(downSampledImg);
-                //downSampledImg = DownSampleImage(downSampledImg);
+                var downSampledImg = imgd;
+                for(var i = 0; i < numTimesToDownsample; ++i)
+                        var downSampledImg = DownSampleImage(downSampledImg);
 
                 //edge detect the downsampled image
                 var edgeDetectedImgd = EdgeDetect(downSampledImg);
 
                 //detect features from the edges
-                var featuresList = DetectFeatures(edgeDetectedImgd);
+                var threshold = 20;
+                var imageBorderMargin = 30;
+                var featuresList = DetectFeatures( edgeDetectedImgd, imgd, downSampleMultiplier, threshold, imageBorderMargin );
 
-                for( f in featuresList )
-                {
-                        f = featuresList[f]
-                }
+                //ctx.putImageData(edgeDetectedImgd, 0, 0);
+
+
+                var maxVerticalDifference = 40;
+                var maxDifference = 100;//80;
+                var correspondences = FindCorrespondences(featuresList, maxDifference, maxVerticalDifference, imgd.width/2/downSampleMultiplier);
+
+                DrawCorrespondences(ctx, correspondences, downSampleMultiplier);
 
                 // Draw the ImageData back to the canvas
                 //ctx.clearRect(0,0,canvas.width,canvas.height);
-                ctx.putImageData(edgeDetectedImgd, 0, 0);
+                
             };
-            image.src = '20190119_162421.jpg';
+            image.src = 'rawSBSImages/20190118_094811.jpg';
 
             update = setInterval(CanvasUpdate, 60);
             canvas.onmousemove = handleMouseMove;
@@ -98,7 +108,8 @@
 
         sbsImage = document.getElementById("sbsImage");
 
-        function printMousePos(event) {
+        function printMousePos(event)
+        {
                 xPos = event.offsetX;//clientX;// - canvas.x;
                 yPos = event.offsetY;//clientY;// - canvas.y;
                 document.getElementById("numCorespText").innerHTML =

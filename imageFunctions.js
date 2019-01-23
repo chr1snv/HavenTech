@@ -38,10 +38,49 @@ class Feature
                 //this is a local maxima
                 return true;
         }
-        constructor(xin, yin, variancein, featureDict)
+        addMatchingFeature(otherFeature)
         {
+                this.matchingFeatures.push( otherFeature );
+                otherFeature.matchingFeatures.push( this );
+        }
+        storePixelValues(imgd, downsampleMultiplier)
+        {
+                var pix = imgd.data;
+
+                this.pixelValues = [];
+
+                for (var ih = this.y*downsampleMultiplier-2, nh = this.y*downsampleMultiplier+2; ih < nh; ih += 1)
+                {
+                        for (var iw = this.x*downsampleMultiplier-2, nw = this.x*downsampleMultiplier+2; iw < nw; iw += 1)
+                        {
+                                var i = ih * imgd.width*4 + iw*4;
+                                this.pixelValues.push(pix[i]  );
+                                this.pixelValues.push(pix[i+1]);
+                                this.pixelValues.push(pix[i+2]);
+                        }
+                }
+        }
+        comparePixelValues(other)
+        {
+                var totalDifference = 0;
+                for( var valueIndex in this.pixelValues)
+                {
+                        var otherValue = other.pixelValues[valueIndex];
+                        var thisValue = this.pixelValues[valueIndex];
+                        
+                        totalDifference += Math.abs( thisValue - otherValue );
+                }
+                return totalDifference;
+        }
+        constructor(xin, yin, variancein, featureDict, imgd, origimgd, downsampleMultiplier)
+        {
+                this.matchingFeatures = [];
+
                 this.x = xin;
                 this.y = yin;
+
+                this.storePixelValues(imgd,1);// origimgd, downsampleMultiplier);//imgd, 1);
+
                 this.variance = variancein;
 
                 //append links to all of the neighboring features for later local maxima finding
@@ -87,29 +126,26 @@ class Feature
 
 }
 
-function DetectFeatures(imgd)
+function DetectFeatures(imgd, origimgd, downsampleMultiplier, threshold, imageBorderMargin)
 {
-        var threshold = 128;
-
-        var canidateFeaturesDict = findCanidateFeatures(imgd, threshold);
+        var canidateFeaturesDict = findCanidateFeatures(imgd, origimgd, downsampleMultiplier, threshold, imageBorderMargin);
 
         var localMaximalFeaturesDict = findLocalMaximalFeatures(imgd, canidateFeaturesDict);
         
         return localMaximalFeaturesDict;
 }
 
-function findCanidateFeatures(imgd, threshold)
+function findCanidateFeatures(imgd, origimgd, downsampleMultiplier, threshold, imageBorderMargin)
 {
         var pix = imgd.data;
         
-
         var featureDict = {};
 
         //find all the canidate features
-        for (var ih = 1, nh = imgd.height-1; ih < nh; ih += 1)
+        for (var ih = imageBorderMargin, nh = imgd.height-imageBorderMargin; ih < nh; ih += 1)
         {
                 
-                for (var iw = 1, nw = imgd.width-1; iw < nw; iw += 1)
+                for (var iw = imageBorderMargin, nw = imgd.width-imageBorderMargin; iw < nw; iw += 1)
                 {
 
                         var i = ih * imgd.width*4 + iw*4;
@@ -126,7 +162,7 @@ function findCanidateFeatures(imgd, threshold)
                                 pix[i+0] = 0;
                                 pix[i+1] = 0;
                                 pix[i+2] = 0;
-                                newFeature = new Feature(iw,ih,variance, featureDict);
+                                newFeature = new Feature(iw, ih, variance, featureDict, imgd, origimgd, downsampleMultiplier);
                                 featureDict[iw+":"+ih] = newFeature;
 
                         }
