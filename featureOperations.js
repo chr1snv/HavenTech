@@ -39,7 +39,7 @@ function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference
                                         if(difference < matchThreshold)
                                         {
                                                 //console.log( "adding match" );
-                                                feature1.addMatchingFeature(feature0);
+                                                feature1.addMatchingFeature(feature0, difference);
                                                 if(feature1OnRight)
                                                         correspondences.push(feature1);
                                                 else

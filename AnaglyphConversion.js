@@ -43,6 +43,15 @@ function ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample)
 
         DrawCorrespondences(ctx, correspondences, downSampleMultiplier);
 
+        //pick the best 3 corresponding pairs
+        correspondences.sort
+        (
+                function( a, b )
+                {
+                        return a.matchingFeatureDifferences[0] - b.matchingFeatureDifferences[0];
+                }
+        );
+
 
 
         var leftImgd  = ctx.getImageData(             0, 0, canvas.width/2, canvas.height);

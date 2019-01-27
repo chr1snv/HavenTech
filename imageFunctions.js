@@ -38,9 +38,11 @@ class Feature
                 //this is a local maxima
                 return true;
         }
-        addMatchingFeature(otherFeature)
+        addMatchingFeature(otherFeature, difference)
         {
+                this.matchingFeatureDifferences.push(difference);
                 this.matchingFeatures.push( otherFeature );
+                otherFeature.matchingFeatureDifferences.push(difference);
                 otherFeature.matchingFeatures.push( this );
         }
         storePixelValues(imgd, downsampleMultiplier)
@@ -83,6 +85,7 @@ class Feature
         constructor(xin, yin, variancein, featureDict, imgd, origimgd, downsampleMultiplier)
         {
                 this.matchingFeatures = [];
+                this.matchingFeatureDifferences = [];
 
                 this.x = xin;
                 this.y = yin;
