@@ -38,6 +38,21 @@ class Feature
                 //this is a local maxima
                 return true;
         }
+
+        getLowestMatchDifference()
+        {
+                var lowestFeatureDiffenceInA = 999999;
+                for( i in this.matchingFeatureDifferences)
+                {
+                        var diff = this.matchingFeatureDifferences[i];
+                        if( diff < lowestFeatureDiffenceInA )
+                        {
+                                lowestFeatureDiffenceInA = diff;
+                        }
+                }
+                return lowestFeatureDiffenceInA;
+        }
+
         addMatchingFeature(otherFeature, difference)
         {
                 this.matchingFeatureDifferences.push(difference);

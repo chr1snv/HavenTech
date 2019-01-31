@@ -41,9 +41,15 @@ function FindCorrespondences(featuresList, matchThreshold, maxVerticalDifference
                                                 //console.log( "adding match" );
                                                 feature1.addMatchingFeature(feature0, difference);
                                                 if(feature1OnRight)
-                                                        correspondences.push(feature1);
+                                                {
+                                                        if( ! correspondences.includes(feature1) ) //prevent features from being added twice
+                                                                correspondences.push(feature1);
+                                                }
                                                 else
-                                                        correspondences.push(feature0);
+                                                {
+                                                        if( ! correspondences.includes(feature0) ) //prevent from adding twice
+                                                                correspondences.push(feature0);
+                                                }
                                         }
                                 }
                         }

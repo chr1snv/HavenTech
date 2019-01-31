@@ -41,17 +41,40 @@ function ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample)
                 imgd.width/2/downSampleMultiplier
         );
 
-        DrawCorrespondences(ctx, correspondences, downSampleMultiplier);
+        
 
         //pick the best 3 corresponding pairs
+        //pick a random set and rank the set based on
+        //how close the lengths of the correspondences are to eachother   ||| lengths
+        //how close the correspodence vector directions are to eachother  ||| angles
+        //how low the differences between the correspondence features are ||| similarity
+
         correspondences.sort
         (
+                //given two features on the right side compare them by the lowest difference between pairs
                 function( a, b )
                 {
-                        return a.matchingFeatureDifferences[0] - b.matchingFeatureDifferences[0];
+                        return a.getLowestMatchDifference() - b.getLowestMatchDifference();
                 }
         );
 
+        console.log('sorted correspondences');
+        var numLowestDifferenceCorrespondencesToDraw = 5;
+        var lowestDifferenceCorrespondences = [];
+        for( i in correspondences)
+        {
+                var feature = correspondences[i];
+                console.log(feature.getLowestMatchDifference());
+                if(numLowestDifferenceCorrespondencesToDraw >= 0)
+                        lowestDifferenceCorrespondences.push(feature);
+                numLowestDifferenceCorrespondencesToDraw -= 1;
+        }
+
+
+        DrawCorrespondences(ctx, lowestDifferenceCorrespondences, downSampleMultiplier);
+
+        //of the lowest difference correspondences, compare the correspondence vectors to get the best matching set
+        
 
 
         var leftImgd  = ctx.getImageData(             0, 0, canvas.width/2, canvas.height);
