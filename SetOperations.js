@@ -18,7 +18,7 @@
 //2 + choose 2 from [3..5]
 //3 + choose 2 from [4..5]
 
-function chooseNFrom2( values, n, nCur = -1 )
+function chooseNFrom( values, n, nCur = -1 )
 {
         var choices = [];
 
@@ -41,7 +41,7 @@ function chooseNFrom2( values, n, nCur = -1 )
                         for( var j = 0; j < thisChoiceLength; j += 1 )
                         {
                                 var value = values[j];
-                                var subChoices = chooseNFrom2(values.slice(j+1,values.length), n, nMin1);
+                                var subChoices = chooseNFrom(values.slice(j+1,values.length), n, nMin1);
                                 for (var idx in subChoices)
                                 {
                                         var choice = [value];
@@ -67,40 +67,3 @@ function chooseNFrom2( values, n, nCur = -1 )
 }
 
 
-function chooseNFrom( values, n )
-{
-        var choices = [];
-
-        if(n == 1)
-        {
-                for( var i in values )
-                {
-                        choices.push([values[i]]);
-                }
-        }
-        else
-        {
-
-                var nMin1 = n - 1;
-                for( var i = 0; i < values.length-nMin1; i += 1 )
-                {
-                        var firstChoice = values[i];
-                        for( var j = i+1; j < values.length; j += 1 )
-                        {
-                                var subChoices = chooseNFrom(values.slice(j,values.length), nMin1);
-                                for (var idx in subChoices)
-                                {
-                                        var subChoice = subChoices[idx];
-
-                                        var choice = [firstChoice];
-                                        for (var sIdx in subChoice)
-                                        {
-                                                choice.push(subChoice[sIdx]);
-                                        }
-                                        choices.push(choice);
-                                }
-                        }
-                }
-        }
-        return choices;
-}

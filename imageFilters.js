@@ -1,12 +1,124 @@
 
 
+Intensity = function(array, idx)
+{
+        return array[idx+0]+array[idx+1]+array[idx+2];
+}
+
+CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImageOffsetX, rightImageOffsetY)
+{
+        var rightImageOffsetX = Math.floor(rightImageOffsetX);
+        var rightImageOffsetY = Math.floor(rightImageOffsetY);
+
+        var pixLeft      = imgdLeft.data;
+        var widthLeft    = imgdLeft.width;
+        var heightLeft   = imgdLeft.height;
+
+        var pixRight     = imgdRight.data;
+        var widthRight   = imgdRight.width;
+        var heightRight  = imgdRight.height;
+
+        var outputImgd = new ImageData(outputWidth, imgdRight.height);
+        var outputPix = outputImgd.data;
+
+        ws = outputWidth*4; //the width stride
+        for (var ih = 0, nh = heightLeft; ih < nh; ih += 1)
+        {
+                for (var iw = 0, nw = widthLeft; iw < nw; iw += 1)
+                {
+                        var outputIdx     =  ih           * outputImgd.width*4 + (iw+outputWidth/4)    *4;
+                        var leftImageIdx  =  ih           * imgdLeft  .width*4 +  iw                   *4;
+
+                        var rightImageH = ih+rightImageOffsetY;
+                        if (rightImageH < 0)
+                        {
+                                rightImageH = 0;
+                        }
+                        else if( rightImageH >= imgdRight.height )
+                        {
+                                rightImageH = imgdRight.height-1;
+                        }
+
+                        var rightImageW = iw-rightImageOffsetX*4;
+                        if (rightImageW < 0)
+                        {
+                                rightImageW = 0;
+                        }
+                        else if( rightImageW >= imgdRight.width )
+                        {
+                                rightImageW = imgdRight.width-1;
+                        }
+                        var rightImageIdx = rightImageH   * imgdRight .width*4 + rightImageW           *4;
+
+                        var pixLeftIntensity  = Intensity( pixLeft, leftImageIdx);
+                        var pixRightIntensity = Intensity(pixRight, leftImageIdx);
+
+                        outputPix[outputIdx+0] = pixLeft[leftImageIdx+0] * 0.1 + pixRight[rightImageIdx+0] * 0.1 + pixLeftIntensity * 0.1;
+                        outputPix[outputIdx+1] = pixLeft[leftImageIdx+1] * 0.1 + pixRight[rightImageIdx+1] * 0.1;
+                        outputPix[outputIdx+2] = pixLeft[leftImageIdx+2] * 0.1 + pixRight[rightImageIdx+2] * 0.1 + pixRightIntensity * 0.8;
+                        outputPix[outputIdx+3] = pixLeft[leftImageIdx+3] * 1.0 + pixRight[rightImageIdx+3] * 1.0;
+
+                }
+        }
+        return outputImgd;
+}
+
+
+ApplyRedFilter = function (imgd)
+{
+        var pix = imgd.data;
+        var width = imgd.width;
+        var height = imgd.height;
+
+        ws = width*4; //the width stride
+        for (var ih = 0, nh = imgd.height; ih < nh; ih += 1)
+        {
+                for (var iw = 0, nw = imgd.width; iw < nw; iw += 1)
+                {
+                        var i = ih * imgd.width*4 + iw*4;
+
+                        pix[i+0] = pix[i+0] * 1.0;
+                        pix[i+1] = pix[i+1] * 0.2;
+                        pix[i+2] = pix[i+2] * 0.2;
+                        pix[i+3] = pix[i+3] * 0.5;
+                }
+        }
+
+        return imgd;
+}
+
+
+ApplyBlueFilter = function (imgd)
+{
+        var pix    = imgd.data;
+        var width  = imgd.width;
+        var height = imgd.height;
+
+        ws = width*4; //the width stride
+        for (var ih = 0, nh = imgd.height; ih < nh; ih += 1)
+        {
+                for (var iw = 0, nw = imgd.width; iw < nw; iw += 1)
+                {
+                        var i = ih * imgd.width*4 + iw*4;
+
+                        pix[i+0] = pix[i+0] * 0.2;
+                        pix[i+1] = pix[i+1] * 0.2;
+                        pix[i+2] = pix[i+2] * 1.0;
+                        pix[i+3] = pix[i+3] * 0.5;
+                }
+        }
+
+        return imgd;
+}
+
+
 DownSampleImage = function (imgd)
 {
         var pix = imgd.data;
-        width = imgd.width;
+        var width = imgd.width;
 
-        downSampledImgd = new ImageData(imgd.width/2, imgd.height/2);
-        downSampledPix = downSampledImgd.data;
+        var downSampledImgd = new ImageData(imgd.width/2, imgd.height/2);
+        var downSampledPix = downSampledImgd.data;
 
         // Loop over each pixel
 
@@ -54,12 +166,13 @@ DownSampleImage = function (imgd)
         return downSampledImgd;
 }
 
+
 EdgeDetect = function (imgd)
 { 
         var pix = imgd.data;
-        width = imgd.width;
+        var width = imgd.width;
 
-        edgeDetectedImgd = new ImageData(imgd.width, imgd.height);
+        var edgeDetectedImgd = new ImageData(imgd.width, imgd.height);
         var edgePix = edgeDetectedImgd.data;
 
         // Loop over each pixel
@@ -114,3 +227,5 @@ EdgeDetect = function (imgd)
 
         return edgeDetectedImgd;
 }
+
+
