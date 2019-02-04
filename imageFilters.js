@@ -2,10 +2,10 @@
 
 Intensity = function(array, idx)
 {
-        return array[idx+0]+array[idx+1]+array[idx+2];
+        return (array[idx+0]+array[idx+1]+array[idx+2])/3;
 }
 
-CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImageOffsetX, rightImageOffsetY)
+CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImageOffsetX, rightImageOffsetY, rotationMatrix, rotationPoint)
 {
         var rightImageOffsetX = Math.floor(rightImageOffsetX);
         var rightImageOffsetY = Math.floor(rightImageOffsetY);
@@ -29,7 +29,14 @@ CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImag
                         var outputIdx     =  ih           * outputImgd.width*4 + (iw+outputWidth/4)    *4;
                         var leftImageIdx  =  ih           * imgdLeft  .width*4 +  iw                   *4;
 
-                        var rightImageH = ih+rightImageOffsetY;
+
+                        var rightImageVect = [iw-rotationPoint[0], ih-rotationPoint[1], 0];
+                        var rightImageVectOut = [0,0,0];
+                        Matrix_Multiply_Vect3( rightImageVectOut, rotationMatrix, rightImageVect );
+                        var rightImageW = Math.round(rightImageVectOut[0] + rotationPoint[0]  + rightImageOffsetX);
+                        var rightImageH = Math.round(rightImageVectOut[1] + rotationPoint[1]  - rightImageOffsetY);
+                        
+
                         if (rightImageH < 0)
                         {
                                 rightImageH = 0;
@@ -38,8 +45,6 @@ CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImag
                         {
                                 rightImageH = imgdRight.height-1;
                         }
-
-                        var rightImageW = iw-rightImageOffsetX*4;
                         if (rightImageW < 0)
                         {
                                 rightImageW = 0;
@@ -51,11 +56,11 @@ CombineRightAndLeftImages = function(imgdLeft, imgdRight, outputWidth, rightImag
                         var rightImageIdx = rightImageH   * imgdRight .width*4 + rightImageW           *4;
 
                         var pixLeftIntensity  = Intensity( pixLeft, leftImageIdx);
-                        var pixRightIntensity = Intensity(pixRight, leftImageIdx);
+                        var pixRightIntensity = Intensity(pixRight, rightImageIdx);
 
-                        outputPix[outputIdx+0] = pixLeft[leftImageIdx+0] * 0.1 + pixRight[rightImageIdx+0] * 0.1 + pixLeftIntensity * 0.1;
-                        outputPix[outputIdx+1] = pixLeft[leftImageIdx+1] * 0.1 + pixRight[rightImageIdx+1] * 0.1;
-                        outputPix[outputIdx+2] = pixLeft[leftImageIdx+2] * 0.1 + pixRight[rightImageIdx+2] * 0.1 + pixRightIntensity * 0.8;
+                        outputPix[outputIdx+0] = pixLeft[leftImageIdx+0] * 0.1 + pixRight[rightImageIdx+0] * 0.0 + pixLeftIntensity * 0.9;
+                        outputPix[outputIdx+1] = pixLeft[leftImageIdx+1] * 0.0 + pixRight[rightImageIdx+1] * 1.0;
+                        outputPix[outputIdx+2] = pixLeft[leftImageIdx+2] * 0.0 + pixRight[rightImageIdx+2] * 0.1 + pixRightIntensity * 0.9;
                         outputPix[outputIdx+3] = pixLeft[leftImageIdx+3] * 1.0 + pixRight[rightImageIdx+3] * 1.0;
 
                 }

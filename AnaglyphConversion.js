@@ -71,6 +71,8 @@ function ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample)
                 numLowestDifferenceCorrespondencesToDraw -= 1;
         }
 
+        DrawCorrespondences(ctx, lowestDifferenceCorrespondences, downSampleMultiplier);
+
         var numLowestDifferenceCorrespondencesToPick = 3;
         var possibleCorrespondenceSets = chooseNFrom( lowestDifferenceCorrespondences, numLowestDifferenceCorrespondencesToPick );
 
@@ -140,7 +142,7 @@ function ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample)
         }
 
         var setToUse = lowestSet; //Math.round(Math.random() * possibleCorrespondenceSets.length);
-        DrawCorrespondences(ctx, possibleCorrespondenceSets[setToUse], downSampleMultiplier);
+        DrawCorrespondences(ctx, setToUse, downSampleMultiplier);
 
 
         var leftImgd  = ctx.getImageData(              0, 0, canvas.width/2, canvas.height );
@@ -152,27 +154,77 @@ function ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample)
         //aCtx.putImageData(leftImgd, canvas.width/4, 0);
         //aCtx.putImageData(rightImgd,canvas.width/4, 0);
 
+        //find the rotation and translation to move one image to another
+
+
+        //get vectors from the beginning image
+        var v1 = [setToUse[0].x - setToUse[1].x,
+                  setToUse[0].y - setToUse[1].y, 0];
+
+        var v2 = [setToUse[1].x - setToUse[2].x,
+                  setToUse[1].y - setToUse[2].y, 0];
+
+        //get vectors from the destination image
+        var vo1 = [setToUse[0].matchingFeatures[0].x - setToUse[1].matchingFeatures[0].x, 
+                   setToUse[0].matchingFeatures[0].y - setToUse[1].matchingFeatures[0].y, 0];
+
+        var vo2 = [setToUse[1].matchingFeatures[0].x - setToUse[2].matchingFeatures[0].x,
+                   setToUse[1].matchingFeatures[0].y - setToUse[2].matchingFeatures[0].y, 0];
+
+        //get the angle of the vectors
+        var v1Norm = [v1[0], v1[1], 0];
+        Vect3_Unit(v1Norm);
+        var v2Norm = [v1[0], v1[1], 0];
+        Vect3_Unit(v2Norm);
+
+        var vo1Norm = [vo1[0], vo1[1], 0];
+        Vect3_Unit(vo1Norm);
+        var vo2Norm = [vo2[0], vo2[1], 0];
+        Vect3_Unit(vo2Norm);
+
+        var v1DiffAng = Vect3_Dot1(v1Norm, vo1Norm);
+        v1DiffAng = Math.acos( v1DiffAng );
+
+        var v2DiffAng = Vect3_Dot1(v2Norm, vo2Norm);
+        v2DiffAng = Math.acos( v2DiffAng );
+
+        console.log("angle differences = " + v1DiffAng * 180 / Math.PI + " : " + v2DiffAng * 180 / Math.PI );
+
+        //create a rotation matrix to rotate the right image to the left image's rotation
+
+        var rotationMatrix = [0,0,0,0,
+                              0,0,0,0,
+                              0,0,0,0,
+                              0,0,0,0];
+
+        Matrix( rotationMatrix, MatrixType.zRot, 0);//-v2DiffAng );
+        Matrix_Print( rotationMatrix );
+
         //map 3 points from from each image to eachother
         //    a  b  1
         //a  [11 12 13]   c
         //b  [21 22 23] = d
         //1  [31 32 33]   1
 
-        //a1 x1 + b1 x2 + c1 x3 = ao1
-        //a1 x1 + b1 x2 + c1 x3 = bo1
-        //a1 x1 + b1 x2 + c1 x3 = co1
+        //a1 11 + b1 12 + c1 13 = ao1
+        //a1 21 + b1 22 + c1 23 = bo1
+        //a1 31 + b1 32 + c1 33 = 1
+ 
+        //a2 11 + b2 12 + c2 13 = ao2
+        //a2 21 + b2 22 + c2 23 = bo2
+        //a2 31 + b2 32 + c2 33 = 1
 
-        //a2 x1 + b2 x2 + c2 x3 = ao2
-        //a2 x1 + b2 x2 + c2 x3 = bo2
-        //a2 x1 + b2 x2 + c2 x3 = co2
+        //a3 11 + b3 12 + c3 13 = ao3
+        //a3 21 + b3 22 + c3 23 = bo3
+        //a3 31 + b3 32 + c3 33 = 1
 
-        //a3 x1 + b3 x2 + c3 x3 = ao3
-        //a3 x1 + b3 x2 + c3 x3 = bo3
-        //a3 x1 + b3 x2 + c3 x3 = co3
+        //a1 11 + b1 12 + c1 13 = ao1 => a1 11 + b1 12 - ao1   = - c1 13 => (a1 11 + b1 12 - ao1) / -c1 = 13
+        //a2 11 + b2 12 + c2 13 = ao2 => a2 11 + b2 12 - ao2   = - c2 13 => (a2 11 + b2 12 - ao2) / -c2 = 13
+        //a3 11 + b3 12 + c3 13 = ao3 => a3 11 + b3 12 - ao3   = - c3 13 => (a3 11 + b3 12 - ao3) / -c3 = 13
 
-        var rightImageOffsetX = lowestSetAverageXDist-canvas.width/4;
-        var rightImageOffsetY = lowestSetAverageYDist;
-        var combinedImgd = CombineRightAndLeftImages(leftImgd, rightImgd, canvas.width, rightImageOffsetX, rightImageOffsetY);
+        var rightImageOffsetX = (setToUse[2].x-canvas.width/2)     - setToUse[2].matchingFeatures[0].x;
+        var rightImageOffsetY =  setToUse[2].matchingFeatures[0].y - setToUse[2].y;
+        var combinedImgd = CombineRightAndLeftImages(leftImgd, rightImgd, canvas.width, rightImageOffsetX, rightImageOffsetY, rotationMatrix, [setToUse[2].x, setToUse[2].y]);
 
         aCtx.putImageData(combinedImgd, 0, 0);
 
