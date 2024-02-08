@@ -1,0 +1,28 @@
+
+a {
+  text-decoration: none;
+}
+
+a:link {
+  color: #a8d2ffff;
+}
+
+a:visited {
+  color: #7892bf20;
+}
+
+body{
+        background: url("../snowflake80x82.png");
+    color: #99c2e4;
+    font-family: sans-serif;
+}
+
+h2,h4,h5{
+	background-color: #45649fd4;
+	width:300px;
+}
+
+h3,h5{
+	margin-bottom:0px;
+	margin-top:0px;
+}

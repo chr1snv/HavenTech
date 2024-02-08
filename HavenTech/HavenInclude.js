@@ -1,34 +1,54 @@
 //HavenInclude.js - loads all of the haven tech scripts into the dom
 
 
-var incFiles = ['Matrix.js',
-                'Curve.js',
-                'IPOAnimation.js',
-                'Vect3.js',
-                'DPrintf.js',
-                'Light.js',
-                'Camera.js',
-                'QuadMesh.js',
-                'SkeletalAnimation.js',
-                'Shader.js',
-                'Texture.js',
-                'Graphics.js',
-                'Drawable.js',
-                'Model.js',
-                'HavenScene.js',
-                'Bone.js',
-                'SceneGraph.js',
-                'MeshKeyAnimation.js',
-                'HavenInputHandlers.js',
-                'Quaternion.js',
-                'Ray.js',
-                'webgl-utils.js'];
+var incFiles = ['DPrintf.js',
+				'UID.js',
+				'Vect3.js',
+				'Quaternion.js',
+				'Matrix.js',
+				'Curve.js',
+				'IPOAnimation.js',
+
+				'AABB.js',
+				'Ray.js',
+				'OctTree.js',
+				
+				'BoundsObjects.js',
+
+				'Math.js',
+				'Physics.js',
+				'PhysObj.js',
+				'PhysConstraintGraph.js',
+				'Capsule.js',
+
+				'SceneGraph.js',
+
+				'webgl-utils.js',
+				'Graphics.js',
+				'Light.js',
+				'Camera.js',
+				'Drawable.js',
+				'QuadMesh.js',
+
+				'Shader.js',
+				'Texture.js',
+
+				'Model.js',
+
+				'Bone.js',
+				'MeshKeyAnimation.js',
+				'SkeletalAnimation.js',
+
+				'HavenScene.js',
+
+				'HavenInputHandlers.js'];
 
 var optIncludes = [
                    'CameraStream.js',
                    'FlightPhysics.js' ];
 
 var incFileIdx = 0;
+var havenDir = 'HavenTech/';
 
 function havenIncMain(){
 

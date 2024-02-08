@@ -2,164 +2,191 @@
 <!DOCTYPE HTML>
 <html lang="en"> 
 
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <link rel="shortcut icon" href="snowflake.ico">
-    <link rel="stylesheet" type="text/css" href="default.css" />
-    <script src="index.js"></script>
-    <title>
-      
-    </title>
-  </head>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link rel="shortcut icon" href="snowflake.ico">
+		<link rel="stylesheet" type="text/css" href="anaglyphConverter.css" />
+		<title>
+		
+		</title>
+	</head>
 
-  <body>
+	<body style="background-color:#4f586a; background-image:url('snowflake80x82_darker.png'); color:#c9e7ff;">
 
-        <table style="background-color:#99c2e440; margin:auto; border-style:dotted;">
-                <tr>
-                        <th>
-                                <img src="snowflake.png" style="width:80px;"></img>
-                        </th>
-                        <th>
-                                <h1>SBS to Anaglyph</h1>
-                        </th>
-                </tr>
-        </table>
+		<table style="background-color:#585e64d4; margin:auto; border-style:dotted;">
+				<tr>
+					<th>
+						<h1>SBS to Anaglyph</h1>
+					</th>
+				</tr>
+				<tr>
+					<th>
+						<a href="../index.html">Index</a>
+					</th>
+				</tr>
+		</table>
+	<div style="border-style: dashed; background-color:#384155e8; width:800px; margin:auto; margin-top:20px;">
+		<h2 style="text-align:center;">Explination</h2>
+		<p style="margin:5px;">
+			This program converts a single image with side by side left and right views
+			Into an anaglyph (red blue) image by finding the best transformation to overlay them<br/>
+			using computer vision techniques from <br/>
+			simultanious localization and mapping,<br/>
+			structure from motion (3d view from video)<br/>
+			such as<br/>
+			edge detection,<br/>
+			maximum local feature detection,<br/>
+			correspondance matching<br/>
+			to automatically<br/>
+			align the images as best as possible<br/>
+			<br/>
+			to generate an anaglyph from left and right images<br/>
+			what is acutally needed is the lens transformation for both images<br/>
+			is many image pairs with correlated features at different depths across the frames<br/>
+			then given the sbs lens doesn't move, the static transform can be found<br/><br/>
+			this program doesn't do that yet<br/>
+			and is more of a test program for the feature detection and matching<br/>
+			functions that are planned to be the basis of a program library to transform<br/>
+			video and images into 3d objects and labeled components for video games and robots<br/>
+			to be able to understand and interact with the world<br/>
+			once it is working reliably with a stereo pair of a known translation<br/>
+			then it should be able to find the transformation between two video frames with static/fixed postion objects<br/>
+			and be used to generate a camera path in 3d and build a 3d pointcloud from feature points
+		</p>
+	</div>
 
-       
+	<div style="border-style: dashed; background-color:#384155e8; width:600px; margin:auto; margin-top:20px;">
+		<form id="settingsForm">
+			<h2 style="text-align:center;">Settings</h2>
+			<table>
+				<tr>
+					<td><h3>Feature Correspondance Match Threshold</h3></td>
+					<td><input id='featCorsMatchThresholdInput' value='3500' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Max Number of Correspondence Sets</h3>
+						<h5>How many subsets of the corresponding features to generate and choose from</h5>
+					</td>
+					<td><input id='maxNumCorrespondanceSets' value='20' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Feature Detection Pixel Variance Threshold</h3>
+						<h5>The amount a pixel in the edge detected downsampled image must differ from 127 (neutral gray) for it to be considered a feature</h5>
+					</td>
+					<td><input id='featureThresholdInput' value='30' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Max Vert Diff</h3>
+						<h5>The percentage of image height to search vertically for corresponding/matching features</h5>
+					</td>
+					<td><input id='maxVertDiffPct' value='30' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Expected Horiz Diff</h3>
+						<h5>The percentage of image width to search horizontally for corresponding/matching features</h5>
+					</td>
+					<td><input id='expctdHorizDiffPct' value='30' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Max Horiz Diff</h3>
+						<h5>The percentage of image width to search horizontally for corresponding/matching features</h5>
+					</td>
+					<td><input id='maxHorizDiffPct' value='30' type="number" style="width:50px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Num Times to Downsample before feature detection</h3>
+						<h5>1 or higher reccomended for performance and reducing pixel noise sensitivity,
+						(this is the number times the image resolution is divided by 2), 
+						too low and memory and compute time may be too high</h5>
+					</td>
+					<td><input id='downsampleTimes' value='2' type="number" style="width:30px;"></input></td>
+				</tr>
+				<tr>
+					<td><h3>Input Image</h3></td>
+					<td>
+						<input type="file" id="imageFile" name="inputImage" accept="image/png, image/jpeg" />
+					</td>
+				</tr>
+				<tr>
+					<td><button type="button" onclick="runConverter()">Run</button></td>
+					<td><button type="button" onclick="setDefaultSettings()">Set Defaults</button></td>
+				</tr>
+			</table>
+		</form>
+	</div>
 
-        <h1>Number of correspondences</h1>
-        <h2 id="numCorespText"></h2>
+		<h2>Original Images</h2>
+		<canvas id = "leftCanv" style="border:1px solid gray; background:grey;"></canvas>
+		<canvas id = "rightCanv" style="border:1px solid gray; background:grey;"></canvas>
+		<br/>
+		<h2>Luminance Histograms</h2>
+		<h4 style='width:400px;'>The number of pixels of each intensity (total/luminance, r, g and b) in the image</h4>
+		<table>
+			<tr>
+				<td><canvas id = "leftHistCanv" style="border:1px solid gray; background:grey;"></canvas></td>
+				<td><canvas id = "rightHistCanv" style="border:1px solid gray; background:grey;"></canvas></td>
+			</tr>
+		</table>
+		<br/>
+		<h2>Edge Detected Images</h2>
+		<h4 style="background-color:#45649fd4; width:600px; margin:10px; ">
+			these images are similar to a normal map, 127/255 (gray) pixels<br/>
+			had no x or y pixel color variance to their adjacent pixels in the original image<br/>
+			red is the dx channel, green dy (delta(variance)) in pixel values<br/>
+			overlayed on this are outputs from the feature detection and matching steps<br/>
+			orange pixels are features that arent local maxima<br/>
+			black pixels are local maxima (highest variance of neighboring pixels)<br/>
+		</h4>
+		<table>
+			<tr>
+				<td><canvas id = "ledgeCanv" style="border:1px solid gray; background:gray;"></canvas></td>
+				<td><canvas id = "redgeCanv" style="border:1px solid gray; background:gray;"></canvas></td>
+			</tr>
+		</table>
+		<h2>Edge d(luminance)/d(px) Histograms</h2>
+		<h4 style='width:400px;'>The number of pixels of each edge steepness (r (left right), g(up down) ) in the image</h4>
+		<table>
+			<tr>
+				<td><canvas id = "lEdgHistCanv" style="border:1px solid gray; background:grey;"></canvas></td>
+				<td><canvas id = "rEdgHistCanv" style="border:1px solid gray; background:grey;"></canvas></td>
+			</tr>
+		</table>
+		<br/>
+		<h2>Detected Features</h2>
+		<h4>here the pixels (patches) of detected features are shown.
+		During the correlation step, these are matched from the left to right images</h4>
+		<table>
+			<tr><td><button id="simPhysButton" type="button" onclick="startPhysicsSimulation()">Sim Phys</button>
+					<button id="drawOctTButton" type="button" onclick="drawOctTreeToggle()">Show OctT</button></td>
+			</tr>
+			<tr>
+				<td><canvas id = "lFetCanvas" style="border:1px solid gray; background:grey;"></canvas></td>
+				<td><canvas id = "rFetCanvas" style="border:1px solid gray; background:grey;"></canvas></td>
+			</tr>
+			<tr><td id="debugTags" style="color:white;">Debug Message Types<br/></td></tr>
+		</table>
+		<h2>Anaglyph (Red Blue) Combined Image</h2>
+		<h4 id="anaglyphTransformation"></h4>
+		<canvas id = "anaglyphCanvas" style="border:1px solid gray; background:grey;"></canvas>
+		<br/>
 
-        <canvas id = "canvas" style="border:1px solid gray;"></canvas>
-        <br/>
-
-        <form id="settingsForm">
-                <h3>Settings</h3>
-                Down Sample Times<br/>
-                <input id='downsampleTimes' value='0' type="number"></input><br/>
-                <button type="button" onclick="runConverter()">Run</button>
-        </form>
-
-        <canvas id = "anaglyphCanvas" style="border:1px solid gray;"></canvas>
-        <br/>
-        <img id="anaglyphImage1" src="seagull.jpg" style="width:30%">
-        <br/>
-        <img id="anaglyphImage2" src="wolfieEntryway.jpg" style="width:30%">
-        <br/>
-        <img id="anaglyphImage3" src="scaleBG.jpg" style="width:30%">
-        <br/>
-        <img id="anaglyphImage1" src="skylight.jpg" style="width:30%">
-        <br/>
-
-        
-
-        <script src="imageFilters.js"></script>
-        <script src="imageFunctions.js"></script>
-        <script src="featureOperations.js"></script>
-        <script src="AnaglyphConversion.js"></script>
-        <script src="SetOperations.js"></script>
-        <script src="HavenTech/Vect3.js"></script>
-        <script src="HavenTech/Matrix.js"></script>
-        <script src="HavenTech/DPrintf.js"></script>
-        <script>
-        var canvas = document.getElementById('canvas');
-        var image = new Image();
-
-        var ctx = canvas.getContext('2d');
-        canvas.width = 800;
-        canvas.height = 600;
-
-        //get the context of the anaglyph display canvas
-        var anaglyphCanvas = document.getElementById('anaglyphCanvas');
-        var aCtx = anaglyphCanvas.getContext('2d');
-        anaglyphCanvas.width = 800;
-        anaglyphCanvas.height = 600;
-
-        function setup()
-        {
-                update = setInterval(CanvasUpdate, 60);
-                canvas.onmousemove = handleMouseMove;
-        };
-        window.onload = setup;
-
-        function runConverter()
-        {
-                //event.preventDefault();
-
-                var numTimesToDownsample = document.getElementById("downsampleTimes").value;
-
-                image.onload = function() { ConvertImageToAnaglyph(image, ctx, aCtx, numTimesToDownsample); }
-                console.log("image onload function set");
-
-                image.src = 'rawSBSImages/20190118_094811.jpg';
-                console.log("imageSrc set");
-        }
-
-        sbsImage = document.getElementById("sbsImage");
-
-        function printMousePos(event)
-        {
-                xPos = event.offsetX;//clientX;// - canvas.x;
-                yPos = event.offsetY;//clientY;// - canvas.y;
-                document.getElementById("numCorespText").innerHTML =
-                        "clientX: " + xPos +
-                        " - clientY: " + yPos;
-        }
-        canvas.addEventListener("click", printMousePos);
-
-
-        function handleMouseMove(event) 
-        {
-                xPos = event.offsetX;
-                yPos = event.offsetY;
-        }
-        
-        function CanvasUpdate()
-        {
-        }       
-
-        /*
-        var ctx = document.getElementById("myChart").getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [$labelValues],
-                datasets: [{
-                    label: '$label',
-                    data: [$dataValues],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ]/*,
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero:true
-                        }
-                    }]
-                }
-            }
-        });
-        */
-        </script>
+		<script src="HavenTech/HavenInclude.js"></script>
+		<script src="imagePreAndPostFiltering.js"></script>
+		<script src="FeatureAndDetection.js"></script>
+		<script src="FeatureCorrespondance.js"></script>
+		<script src="FeatureDebugDrawing.js"></script>
+		<script src="Histogram.js"></script>
+		<script src="MainFeatureDiffBasedSBSToAnaglyph.js"></script>
+		<script src="SubsetChooseOperations.js"></script>
+		<script src="TransformFromCorespSet.js"></script>
+		<!-- <script src="HavenTech/Ray.js"></script> 
+		<script src="HavenTech/AABB.js"></script>
+		<script src="HavenTech/Vect3.js"></script>
+		<script src="HavenTech/Matrix.js"></script>
+		<script src="HavenTech/OctTree.js"></script>
+		<script src="HavenTech/DPrintf.js"></script> -->
 
 
-  </body>
+	</body>
 
 </html>

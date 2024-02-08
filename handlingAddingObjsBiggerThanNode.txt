@@ -1,0 +1,16 @@
+
+
+it shouldn't occur that an object's max and min are outside it's bounds
+if it does that means the tree node is empty and should be un-subdivided
+
+(though it maybe cannot be un subdivided, because there are objects in the adjacent
+sub nodes)
+
+
+if subdividing doesn't reduce the number of objects in the sub divisions
+then return that the object wasn't added and remove the created sub nodes
+
+
+need to return the number of new leaves created on an addObject and the amount of depth added
+
+

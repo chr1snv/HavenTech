@@ -58,10 +58,10 @@ function Quat_FromEuler( eulerAngles )
 //generate a rotation quaternion about the specified axis
 //given the euler angle of rotation
 function Quat_FromXRot( angle ){
-    var ret = [ 0,0,0,1 ];
+    var ret = Quat_Identity();
     
     //prevent nan issues with trig functions
-    if( angle == 0 ) return Quat_Identity();
+    if( angle == 0 ) return ret;
     
     ret[0] = Math.sin(angle/2.0);
     ret[3] = Math.cos(angle/2.0);
@@ -70,9 +70,9 @@ function Quat_FromXRot( angle ){
 }
 
 function Quat_FromYRot( angle ){
-    var ret = [0,0,0,1];
+    var ret = Quat_Identity();
     
-    if( angle == 0 ) return Quat_Identity();
+    if( angle == 0 ) return ret;
     
     ret[1] = Math.sin(angle/2.0);
     ret[3] = Math.cos(angle/2.0);
@@ -80,9 +80,9 @@ function Quat_FromYRot( angle ){
     return ret;
 }
 function Quat_FromZRot( angle ){
-    var ret = [0,0,0,1];
+    var ret = Quat_Identity();
     
-    if( angle == 0 ) return Quat_Identity();
+    if( angle == 0 ) return ret;
     
     ret[2] = Math.sin(angle/2.0);
     ret[3] = Math.cos(angle/2.0);
