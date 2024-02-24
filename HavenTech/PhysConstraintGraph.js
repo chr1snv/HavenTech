@@ -129,9 +129,9 @@ function PhysConstraintGraph(type, AABBmin, AABBmax, colisRootObj){
 		DTPrintf("add constrPair " +
 				 " type " + constrPair.type + 
 				 " time " + constrPair.time.toPrecision(3) +
-				 " normal " + ToFixedPrecisionString( constrPair.normal, 3 ) +
-				 " pos " + ToFixedPrecisionString( constrPair.pos, 3 ) +
-				 " intrD " + ToFixedPrecisionString( constrPair.intrD, 3 ) +
+				 " normal " + Vect_ToFixedPrecisionString( constrPair.normal, 3 ) +
+				 " pos " + Vect_ToFixedPrecisionString( constrPair.pos, 3 ) +
+				 " intrD " + Vect_ToFixedPrecisionString( constrPair.intrD, 3 ) +
 				 " ob1 " + constrPair.ob1.uid.val +
 				 " ob2 " + constrPair.ob2.uid.val
 				 , "constr msg");
@@ -277,7 +277,7 @@ function PhysConstraintGraph(type, AABBmin, AABBmax, colisRootObj){
 	let totalInterpenDepth = 0;
 	this.ApplyInterpenOffset = function(ob){ //apply after consolidating
 		if( this.numInterPen > 0 ){
-			DTPrintf( "ob uid " + ob.uid.val + " mass " + ob.mass + " pos " + ToFixedPrecisionString(ob.AABB.center, 5), "interpen" );
+			DTPrintf( "ob uid " + ob.uid.val + " mass " + ob.mass + " pos " + Vect_ToFixedPrecisionString(ob.AABB.center, 5), "interpen" );
 			let colisObjs = this.constrPairs[ob.uid.val]; //objs that the key object colides with
 			let colisObjKeys = Object.keys( colisObjs );
 			if( colisObjKeys.length > 0 ){
@@ -302,12 +302,12 @@ function PhysConstraintGraph(type, AABBmin, AABBmax, colisRootObj){
 					Vect3_Add( avgInterpenNorm, tmpInterpenNorm );
 					DTPrintf( "\n" +
 						"ob1 " + constrPair.ob1.uid.val +
-						" ob1 pos " + ToFixedPrecisionString(constrPair.ob1.AABB.center, 3) + " mass " + constrPair.ob1.mass + "\n" +
+						" ob1 pos " + Vect_ToFixedPrecisionString(constrPair.ob1.AABB.center, 3) + " mass " + constrPair.ob1.mass + "\n" +
 						"ob2 " + constrPair.ob2.uid.val + 
-						" ob2 pos " + ToFixedPrecisionString(constrPair.ob2.AABB.center, 3) + " mass " + constrPair.ob2.mass + "\n" + 
+						" ob2 pos " + Vect_ToFixedPrecisionString(constrPair.ob2.AABB.center, 3) + " mass " + constrPair.ob2.mass + "\n" + 
 						"interPenOb " + interPenOb.uid.val +
-						" tmpNorm " + ToFixedPrecisionString(tmpInterpenNorm, 3) +
-						" avgNorm " + ToFixedPrecisionString(avgInterpenNorm, 3)
+						" tmpNorm " + Vect_ToFixedPrecisionString(tmpInterpenNorm, 3) +
+						" avgNorm " + Vect_ToFixedPrecisionString(avgInterpenNorm, 3)
 						, "interpen" );
 					totalInterpenDepth += constrPair.intrD;
 					numNorms += 1;
@@ -322,9 +322,9 @@ function PhysConstraintGraph(type, AABBmin, AABBmax, colisRootObj){
 					Vect3_MultiplyScalar( avgInterpenNorm, interpenLen );
 					ob.AABB.OffsetPos( avgInterpenNorm );
 					DTPrintf( 
-					"pos offset " + ToFixedPrecisionString(avgInterpenNorm, 3) + 
+					"pos offset " + Vect_ToFixedPrecisionString(avgInterpenNorm, 3) + 
 					" len " + interpenLen + "\n" +
-					"new pos " + ToFixedPrecisionString(ob.AABB.center, 5), "interpen" );
+					"new pos " + Vect_ToFixedPrecisionString(ob.AABB.center, 5), "interpen" );
 					Vect3_Zero( ob.linVel );
 					//ob1.linVel = this.interPenNormal;
 					//ob2.linVel = this.interPenNormal;

@@ -132,17 +132,21 @@ function Vect3_LERP(v, v1, v2, v2Weight){
 	v[2] = v1[2]*v1Weight + v2[2]*v2Weight;
 }
 
-function vFxLenStr( v, numDecimalPlaces, len ){
+//return a string from a vector of numbers
+//make each entry of the vector have 
+function Vect_FixedLenStr( v, numDecimalPlaces, len ){
 	let retString = '';
 	let a = '';
-	for( let i = 0; i < v.length; ++i ){
+	for( let i = 0; i < v.length; ++i ){ //for each number in the vector
 		a = v[i].toFixed(numDecimalPlaces);
-		if(a.length > len){
+		if(a.length > len){ //if adding the decimal places makes it longer than the string length for each number
+			//convert to truncated scientific notation
 			//a = a.slice(0, len-2);
 			//a += "..";
-			let fd = a[0] == '-' ? a.slice(0,2) : a[0];
-			let ep = a[0] == '-' ? a.length-2 : a.length-1;
-			a = fd + "e" + ep;
+			let fd = a[0] == '-' ? a.slice(0,2) : a[0]; //get the (first digit) most significant integer of the number (before decimal)
+			let intStr = v[i].toFixed(0);
+			let ep = intStr == '-' ? intStr.length-2 : intStr.length-1; //get the number of ten's decimal places
+			a = fd + "e" + ep; //first digit e (signifying x10 exponent) power of ten truncated scientific notation string
 		}
 		
 		if( a.length < len ){
@@ -157,8 +161,18 @@ function vFxLenStr( v, numDecimalPlaces, len ){
 	return retString;
 }
 
+function Vect3_ArrToStr( va, numDecPlaces, maxNumLen ){
+	let str = "";
+	for( let i = 0; i < va.length; ++i ){
+		str += Vect_FixedLenStr( va[i], numDecPlaces, maxNumLen );
+		if( i < va.length-1 )
+			str += " : ";
+	}
+	return str;
+}
+
 //for debug printing
-function ToFixedPrecisionString( v, numDecimalPlaces ){
+function Vect_ToFixedPrecisionString( v, numDecimalPlaces ){
 	let retString = "v";
 	for( let i = 0; i < v.length; ++i ){
 		retString += v[i].toPrecision(numDecimalPlaces);

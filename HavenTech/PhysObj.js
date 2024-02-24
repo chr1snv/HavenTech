@@ -459,8 +459,8 @@ function PhysObj(AABB, obj, time){
 				this.AABB.OffsetPos(delP);
 				
 				//console.log( 
-				//	" linVel " + ToFixedPrecisionString( this.linVel, 5 ) + 
-				//	" center " + ToFixedPrecisionString( this.AABB.center, 5 ) );
+				//	" linVel " + Vect_ToFixedPrecisionString( this.linVel, 5 ) + 
+				//	" center " + Vect_ToFixedPrecisionString( this.AABB.center, 5 ) );
 				
 			}
 			
@@ -490,6 +490,7 @@ function PhysObj(AABB, obj, time){
 			//some part of the obj is now in a new node, need to add to that one
 			if(totOvlapPct < 0.99){
 				let nLvsMDpth = [0, 0];
+				subDivAddDepth = 0;
 				treeNode.root.AddObject(nLvsMDpth, this.obj);
 			}
 			

@@ -225,7 +225,7 @@ function preformMouseEvent(event){
 				avgMoveSum[0] = avgMoveSum[0] * 0.9 + offset[0] * 0.5;
 				avgMoveSum[1] = avgMoveSum[1] * 0.9 + offset[1] * 0.5;
 				avgMoveSum[2] = 0;
-				DTPrintf("avgMoveSum " + ToFixedPrecisionString(avgMoveSum,3), "mouse" );
+				DTPrintf("avgMoveSum " + Vect_ToFixedPrecisionString(avgMoveSum,3), "mouse" );
 				
 				featurePix.physObj.AABB.OffsetPos( offset );
 				Vect3_Zero( featurePix.physObj.linVel );
@@ -245,9 +245,9 @@ function preformMouseEvent(event){
 			featurePix.physObj.linVel[2] = 0;
 			avgMoveSum = Vect3_NewZero();
 			DTPrintf("eventup offset " + event.offsetX + " " + event.offsetY + 
-					" linVel " + ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
-					" avgMoveSum " + ToFixedPrecisionString(avgMoveSum, 3) +
-					" featurePix linVel " + ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
+					" linVel " + Vect_ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
+					" avgMoveSum " + Vect_ToFixedPrecisionString(avgMoveSum, 3) +
+					" featurePix linVel " + Vect_ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
 					" uid " + featurePix.uid.val
 						, "mouse", "color:purple" );
 		}
