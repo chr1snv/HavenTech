@@ -431,6 +431,8 @@ function PhysObj(AABB, obj, time){
 		DTPrintf("updt linvel " + this.linVel + " uid " + this.uid.val, "linvel" );
 		//if linVel is below a threshold and obj is resting dont update position
 		if( !this.resting ){
+		
+			let prevPosition = Vect3_CopyNew(this.AABB.center);
 			
 			if( Vect3_Length( this.linVel ) < RESTING_VEL && 
 				this.physGraph && this.physGraph.totalConstrPairs > 0 ){
@@ -479,22 +481,40 @@ function PhysObj(AABB, obj, time){
 				}
 			}
 			
-			for( nd in nodesToRemoveFrom ){
-				let tNd = this.obj.treeNodes[nd];
-				if( tNd != undefined ){
-					tNd.RemoveFromThisNode(this.obj); //node may unsubdivide during remove
-					delete(this.obj.treeNodes[nd]);
-				}
+			if( nodesToRemoveFrom.length > 0 ){
+				//moved into a new subnode or out of bounds
+				//need to check it's possible to move into the new subnode before
+				//changing the position and removing from the old nodes
 			}
-				
+			
 			//some part of the obj is now in a new node, need to add to that one
+			let addSuccess = true;
 			if(totOvlapPct < 0.99){
 				let nLvsMDpth = [0, 0];
 				subDivAddDepth = 0;
 				treeNode.root.AddObject(nLvsMDpth, this.obj);
+				if( nLvsMDpth[0] < 0 ){
+					//failed to add to the new node
+					addSuccess = false;
+				}
 			}
 			
-		
+			if( addSuccess ){
+				for( nd in nodesToRemoveFrom ){
+					let tNd = this.obj.treeNodes[nd];
+					if( tNd != undefined ){
+						tNd.RemoveFromThisNode(this.obj); //node may unsubdivide during remove
+						delete(this.obj.treeNodes[nd]);
+					}
+				}
+			}else{
+				if( nodesToRemoveFrom.length > 0 ){
+					//revert to previous position (and collide with the node boundry or set zero velocity)
+					this.AABB.MoveCenter(prevPosition);
+					Vect3_SetScalar(this.linVel, 0);
+				}
+			}
+			
 		}
 		
 		this.lastUpdtTime = time;

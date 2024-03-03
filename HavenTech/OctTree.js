@@ -476,13 +476,7 @@ function TreeNode( minCoord, maxCoord, parent ){
 
 				//split the node until there are only MaxTreeNodeObjects per node
 				
-				//remove object's association to this treeNode
-				//since it is going to be added to one or more of the subnodes
-				for( let i = 0; i < this.objects[0].length; ++i ){ 
-					delete this.objects[0][i].treeNodes[this.uid.val];
-				}
-				
-				//create the up to 8 (2x minmin minmax and maxmin maxmax ) nodes
+				//attempt to create the up to 8 (2x minmin minmax and maxmin maxmax ) nodes
 				let srcCoords = [this.AABB.minCoord, Vect3_CopyNew(this.AABB.center), this.AABB.maxCoord];
 				let nNLvs = this.generateSubNodes(srcCoords); //[numNodesCreated, num[x,y,z] ]
 				this.nNLvs = nNLvs;
@@ -490,13 +484,20 @@ function TreeNode( minCoord, maxCoord, parent ){
 				if( nNLvs[0] < 2 ){ //min node size has been reached (couldn't subdivide)
 					nLvsMDpth[0] = -3; nLvsMDpth[1] = 0;
 					DTPrintf( "tNId " + this.uid.val + "nNLvs " + nNLvs + 
-						" this.maxDepth " + this.maxDepth + " genSubNodes nNLvs[0] < 2 (min node size reached)" + 
+						" this.maxDepth " + this.maxDepth + 
+						" genSubNodes nNLvs[0] < 2 (min node size reached) minNodeSideLength " + minNodeSideLength + 
 						" subdiv srcCoords " + Vect3_ArrToStr( srcCoords, 4, 8) + 
 						" object uid " + object.uid.val, "ot add error", "color:red", this.depth );
 					return; 
 				}
 				
-				DTPrintf( "tNId " + this.uid.val + "nNLvs " + nNLvs + 
+				//remove object's association to this treeNode
+				//since it is going to be added to one or more of the subnodes
+				for( let i = 0; i < this.objects[0].length; ++i ){ 
+					delete this.objects[0][i].treeNodes[this.uid.val];
+				}
+				
+				DTPrintf( "tNId " + this.uid.val + "nNLvs " + nNLvs + "  generateSubNodes success " +
 				" this.maxDepth " + this.maxDepth + " srcCoords " + srcCoords, "ot subdiv", "color:#ff4499", this.depth );
 				
 				let objsAdded = {};
@@ -803,7 +804,8 @@ function TreeNode( minCoord, maxCoord, parent ){
 	this.generateSubNodes = function(srcCoords){
 		subDivAddDepth += 1;
 		if( subDivAddDepth > 1){
-			DTPrintf( "potential for add error " + " tNId " + this.uid.val + " dpth " + this.depth + 
+			DTPrintf( "potential for add error subDivAddDepth " + subDivAddDepth + 
+				" tNId " + this.uid.val + " dpth " + this.depth + 
 				" srcCoords " + srcCoords, "ot add error", "color:maroon", this.depth);
 		}
 
