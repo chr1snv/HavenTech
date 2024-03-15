@@ -157,10 +157,12 @@
 		During the correlation step, these are matched from the left to right images</h4>
 		<table>
 			<tr><td><button id="simPhysButton" type="button" onclick="startPhysicsSimulation()">Sim Phys</button>
-					<button id="drawOctTButton" type="button" onclick="drawOctTreeToggle()">Show OctT</button></td>
+					<button id="drawOctTButton" type="button" onclick="drawOctTreeToggle()">Show OctT</button>
+					<button id="entFullScrnButton" type="button" onclick="EnterFullScreen()">Enter Full Screen</button>
+				</td>
 			</tr>
 			<tr>
-				<td><canvas id = "lFetCanvas" style="border:1px solid gray; background:grey;"></canvas></td>
+				<td><canvas id = "lFetCanvas" style="border:1px solid gray; background:grey; touch-action:none;"></canvas></td>
 				<td><canvas id = "rFetCanvas" style="border:1px solid gray; background:grey;"></canvas></td>
 			</tr>
 			<tr><td id="debugTags" style="color:white;">Debug Message Types<br/></td></tr>

@@ -72,11 +72,15 @@ function CreateDebugTabsOnPage(){
 	//let c = tagRow.insertCell();
 	let keys = Object.keys(enabledDebugTags);
 	let s = document.createElement("select");
+	s.onselect = debugTagClicked;
 	for( kidx in keys ){
 		let o = document.createElement('option');
 		let keyName = keys[kidx];
 		o.text = enabledDebugTags[ keyName ] + ':' + keyName;
 		o.onclick = debugTagClicked;
+		o.ontouchstart = debugTagClicked;
+		o.onselect = debugTagClicked;
+		o.ontoggle = debugTagClicked;
 		if( settings[keyName] == '1' ) //set previous setting
 			debugTagClicked( {'target':o } );
 		s.appendChild( o );

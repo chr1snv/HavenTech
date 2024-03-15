@@ -35,7 +35,7 @@ function attributeSetFloats( prog, attr_name, rsize, arr) {
     gl.vertexAttribPointer(attr, rsize, gl.FLOAT, false, 0, 0);
 }
 
-function Graphics(canvasIn, bpp, depthIn){
+function Graphics(canvasIn, bpp, depthIn, useGL){
 
     this.canvas = canvasIn;
 
@@ -182,21 +182,7 @@ function Graphics(canvasIn, bpp, depthIn){
     }
     this.UnrefQuadMesh = function(filename, sceneName) {}
 
-    //initialization code
-    gl = WebGLUtils.setupWebGL(canvasIn);
-
-    //setup the gl state
-    gl.clearColor(0.6, 0.7, 1.0, 1.0);
-
-    //gl.viewport(0, 0, screenWidth, screenHeight);
-
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-
-    //enable depth testing
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
-    gl.depthMask(true);
+    
 
     //load and compile the program
     this.CreateProgramFromShaders = function( vertShaderFileName, fragShaderFileName ){
@@ -230,8 +216,30 @@ function Graphics(canvasIn, bpp, depthIn){
         this.currentProgram = program;
     }
 
-    //clear the render buffer
-    this.Clear();
-        
-    CheckGLError("Graphics::end constructor ");
+	//initialization code
+    if( useGL ){
+    
+		gl = WebGLUtils.setupWebGL(canvasIn);
+
+		//setup the gl state
+		gl.clearColor(0.6, 0.7, 1.0, 1.0);
+
+		//gl.viewport(0, 0, screenWidth, screenHeight);
+
+		gl.enable(gl.CULL_FACE);
+		gl.cullFace(gl.BACK);
+
+		//enable depth testing
+		gl.enable(gl.DEPTH_TEST);
+		gl.depthFunc(gl.LESS);
+		gl.depthMask(true);
+		
+		//clear the render buffer
+	    this.Clear();
+	    
+        CheckGLError("Graphics::end constructor ");
+    
+    }
+
+
 }

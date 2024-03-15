@@ -3,23 +3,132 @@
 mCoords     = {x:0, y:0};
 mDown       = false;
 mDownCoords = {x:0, y:0}; 
-keys        = {};
 
-function registerInputHandlers(){
-    //register the canvas mouse move callback
-    document.getElementById("frayenCanvas").onmousedown = canvasMouseDownHandler;
-    document.getElementById("frayenCanvas").onmousemove = canvasMouseMoveHandler;
-    document.getElementById("frayenCanvas").onmouseup   = canvasMouseUpHandler;
-    document.getElementById("frayenCanvas").onmouseout  = canvasMouseUpHandler;
 
-    document.getElementById("frayenCanvas").touchstart  = canvasTouchStartHandler;
-    document.getElementById("frayenCanvas").ontouchmove = canvasTouchMoveHandler;
-    document.getElementById("frayenCanvas").touchend    = canvasTouchEndHandler;
-    //register the canvas keypress callback
+function PointerHandler(canvIn){
+
+	this.queuedEvents = [];
+	
+	function queueTouches(evtType, e, btns){
+		for (let i=0; i < e.changedTouches.length; i++) {
+			let t = e.changedTouches[i];
+			let evt = {type:evtType, buttons:btns, 
+				X:t.canvasX, Y:t.canvasY};
+			e.target.pointerHandler.queuedEvents.push( evt );
+		}
+	}
+
+	function canvasTouchEndHandler(e){
+		mDown = false;
+		e.preventDefault();
+		convertTouchesToMouseCoords(e);
+		queueTouches('Up', e, 0);
+	}
+
+	function canvasTouchMoveHandler(e){
+		mDown = true;
+		e.preventDefault();
+		convertTouchesToMouseCoords(e);
+		queueTouches('Move', e, 1);
+	}
+
+	function canvasTouchStartHandler(e){
+		mDown = true;
+		e.preventDefault();
+		convertTouchesToMouseCoords(e);
+		queueTouches('Down', e, 1);
+	}
+
+	function convertTouchesToMouseCoords(e){
+		var touches = e.changedTouches;
+		for (let i=0; i < touches.length; i++) {
+		    e.target.relMouseCoords(touches[i], touches[i].pageX, touches[i].pageY);
+		}
+	}
+
+	function canvasMouseDownHandler(e){
+		mDownCoords.x = e.offsetX;
+		mDownCoords.y = e.offsetY;
+		mDown = true;
+		e.target.relMouseCoords(e, e.pageX, e.pageY);
+		let evt = {type:'Down', buttons:event.buttons,
+				X:e.canvasX, Y:e.canvasY};
+		e.target.pointerHandler.queuedEvents.push( evt );
+	}
+	function canvasMouseUpHandler(e){
+		mDown = false;
+		e.target.relMouseCoords(e, e.pageX, e.pageY);
+		let evt = {type:'Up', buttons:e.buttons, 
+				X:e.canvasX, Y:e.canvasY};
+			e.target.pointerHandler.queuedEvents.push( evt );
+	}
+	function canvasMouseMoveHandler(e){
+		mCoords.x = e.offsetX;
+		mCoords.y = e.offsetY;
+		e.target.relMouseCoords(e, e.pageX,e.pageY);
+		let evt = {type:'Move', buttons:event.buttons, 
+				X:e.canvasX, Y:e.canvasY};
+		e.target.pointerHandler.queuedEvents.push( evt );
+	}
+
+	//register the canvas mouse move callback
+    canvIn.onmousedown = canvasMouseDownHandler;
+    canvIn.onmousemove = canvasMouseMoveHandler;
+    canvIn.onmouseup   = canvasMouseUpHandler;
+    canvIn.onmouseout  = canvasMouseUpHandler;
+
+    canvIn.ontouchstart  = canvasTouchStartHandler;
+    canvIn.ontouchmove = canvasTouchMoveHandler;
+    canvIn.ontouchend    = canvasTouchEndHandler;
+
+	canvIn.pointerHandler = this;
+}
+
+//mouse cordinates for canvas
+//http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
+function relMouseCoords(e, eX,eY){
+	if(e.offsetX && e.offsetY){
+		e.canvasX = e.offsetX;
+		e.canvasY = e.offsetY;
+	}
+
+	
+	if(document.fullscreenElement){
+		//if( window.orientation == 0 ) //portrait
+		let minY = e.target.screenWidth / 
+		
+		e.canvasX = e.screenX / window.screen.width * e.target.width;
+		e.canvasY = e.screenY / window.screen.height * e.target.height;
+		return;
+	}
+	
+
+    let totalOffsetX = 0;
+    let totalOffsetY = 0;
+    let canvasX = 0;
+    let canvasY = 0;
+    let currentElement = this;
+    
+    do{
+        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+    }
+    while(currentElement = currentElement.offsetParent)
+        
+    e.canvasX = eX - totalOffsetX;
+    e.canvasY = eY - totalOffsetY;
+}
+HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
+
+
+
+function registerKeyHandlers(){
+	//register the canvas keypress callback
     document.onkeydown                                  = pageKeyDownHandler;
     document.onkeyup                                    = pageKeyUpHandler;
 }
 
+keys        = {};
 
 function pageKeyDownHandler(e){
     var keyCode = e.keyCode;
@@ -29,69 +138,6 @@ function pageKeyUpHandler(e){
     var keyCode = e.keyCode;
     keys[keyCode] = false;
 }
-
-function canvasTouchEndHandler(e){
-    mDown = false;
-    e.preventDefault();
-    convertTouchesToMouseCoords(e);
-}
-
-function canvasTouchMoveHandler(e){
-    mDown = true;
-    e.preventDefault();
-    convertTouchesToMouseCoords(e);
-}
-
-function canvasTouchStartHandler(e){
-    mDown = true;
-    e.preventDefault();
-    convertTouchesToMouseCoords(e);
-    mDownCoords.x = mCoords.x;
-    mDownCoords.y = mCoords.y;
-}
-
-
-function convertTouchesToMouseCoords(e){
-    var touches = e.changedTouches;
-    for (var i=0; i < touches.length; i++) {
-        mCoords = {x:touches[i].pageX, y:touches[i].pageY};
-        mCoords = document.getElementById('frayenCanvas').relMouseCoords(mCoords.x, mCoords.y);
-        DPrintf("mCoords: " + mCoords.x + " : " + mCoords.y );
-    }
-}
-
-function canvasMouseDownHandler(e){
-    mDownCoords.x = mCoords.x;
-    mDownCoords.y = mCoords.y;
-    mDown = true;
-}
-function canvasMouseUpHandler(e){
-    mDown = false;   
-}
-function canvasMouseMoveHandler(e){
-    mCoords = document.getElementById('frayenCanvas').relMouseCoords(e.pageX,e.pageY);
-}
-//mouse cordinates for canvas
-//http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
-function relMouseCoords(eX,eY){
-    var totalOffsetX = 0;
-    var totalOffsetY = 0;
-    var canvasX = 0;
-    var canvasY = 0;
-    var currentElement = this;
-    
-    do{
-        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-    }
-    while(currentElement = currentElement.offsetParent)
-        
-    canvasX = eX - totalOffsetX;
-    canvasY = eY - totalOffsetY;
-    
-    return {x:canvasX, y:canvasY}
-}
-HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
 //https://gist.github.com/cjcliffe/1185173
 keyCodes = {

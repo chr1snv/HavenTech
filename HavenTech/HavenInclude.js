@@ -41,7 +41,10 @@ var incFiles = ['DPrintf.js',
 
 				'HavenScene.js',
 
-				'HavenInputHandlers.js'];
+				'HavenInputHandlers.js',
+				'TouchScreenControls.js',
+				
+				'FullScreenAndPointerLock.js'];
 
 var optIncludes = [
                    'CameraStream.js',

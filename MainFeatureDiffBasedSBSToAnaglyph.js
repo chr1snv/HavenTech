@@ -64,12 +64,56 @@ var octTreeDivLogElm = document.getElementById('octTreeDivLog');
 function havenMain()
 {
 	CreateDebugTabsOnPage();
+	//touch = new TouchScreenControls( lFetCanvas );
+	
 	update = setInterval(CanvasUpdate, 60);
-	lFetCanvas.onmousemove = handleMouseMove;
-	lFetCanvas.onmousedown = handleMouseMove;
-	lFetCanvas.onmouseup   = handleMouseMove;
+	
+	graphics = new Graphics(lFetCanvas);
+	
+	registerKeyHandlers();
+	pointerHandler = new PointerHandler(lFetCanvas);
+	//lFetCanvas.onmousemove = handleMouseMove;
+	//lFetCanvas.onmousedown = handleMouseMove;
+	//lFetCanvas.onmouseup   = handleMouseMove;
+	
+	/*
+	document.onmousedown = docMDown;
+    document.onmousemove = docMMove;
+    document.onmouseup   = docMUp;
+    document.onmouseout  = docMOut;
+
+    document.touchstart  = docTStart;
+    document.ontouchmove = docTMove;
+    document.touchend    = docTEnd;
+    */
 };
 //window.onload = setup;
+
+/*
+function docMDown(e){
+	console.log('mDown');
+}
+function docMMove(e){
+	console.log('mMove');
+}
+function docMUp(e){
+	console.log('mUp');
+}
+function docMOut(e){
+	console.log('mOut');
+}
+
+function docTStart(e){
+	console.log('tStart');
+}
+function docTMove(e){
+	console.log('tMove');
+}
+function docTEnd(e){
+	console.log('tEnd');
+}
+*/
+
 
 function runConverter()
 {
@@ -144,6 +188,23 @@ function printMousePos(event){
 }
 //canvas.addEventListener("click", printMousePos);
 
+
+/*
+let queuedMouseEvents = [];
+function handleMouseMove(event){
+	if( event.preventDefault )
+		event.preventDefault();
+	if(simPhys){
+		//if(event.type == 'mousedown' && ptrLck == null)
+		//	requestPointerLock(lFetCanvas);
+		DTPrintf( "queing mouseEvt " + event.type, "mouse" );
+		let evt = {type:event.type, buttons:event.buttons, 
+			offsetX:event.offsetX, offsetY:event.offsetY};
+		queuedMouseEvents.push( evt );
+	}
+}
+*/
+
 const numFramesToHighlightGraphObjs = 30;
 
 let lastMovedFeaturePix = undefined;
@@ -151,22 +212,14 @@ let avgMoveSum = [0,0,0];
 let prevMouseMoveFeaturePixPos = [0,0,0];
 const DblPrssMaxSecs = 0.8;
 let lastEmptySpacePressTime = -1;
-let queuedMouseEvents = [];
-function handleMouseMove(event){
-	if(simPhys){
-		DTPrintf( "queing mouseEvt " + event.type, "mouse" );
-		let evt = {type:event.type, buttons:event.buttons, 
-			offsetX:event.offsetX, offsetY:event.offsetY};
-		queuedMouseEvents.push( evt );
-	}
-}
+
 function preformMouseEvent(event){
 	DTPrintf( "mouseEvt " + event.type, "mouse", "color:pink" );
 	if(!leftFeatureOctTree)
 		return;
 	
-	xPos = event.offsetX;
-	yPos = event.offsetY;
+	xPos = event.X;
+	yPos = event.Y;
 	//console.log('x ' + xPos + ' y ' + yPos );
 	
 	let mRay = new Ray(origin=[xPos, yPos, 1], direction=[0,0,-1]);
@@ -184,7 +237,7 @@ function preformMouseEvent(event){
 		//mRay.visitedNodes[n].Update(time);
 	//}
 	
-	if( event.type == 'mousemove' || event.type == 'mouseup' )
+	if( event.type == 'Move' || event.type == 'Up' )
 		retVal_feature[1] = lastMovedFeaturePix;
 	else
 		lastMovedFeaturePix = undefined;
@@ -209,17 +262,17 @@ function preformMouseEvent(event){
 		DTPrintf( featurePix.uid.val, "mouse" );
 		if( event.buttons > 0 ){ //button pressed
 			let dblPressTime = time - featurePix.lastPressTime;
-			if( event.type == 'mousedown' ){
+			if( event.type == 'Down' ){
 				Vect3_Copy( prevMouseMoveFeaturePixPos, featurePix.physObj.AABB.center );
 				if( dblPressTime > 0 && dblPressTime < DblPrssMaxSecs ){
 					featurePix.RemoveFromOctTree();
 				}
 				featurePix.lastPressTime = time;
-			}else if( event.type == 'mousemove' ){
+			}else if( event.type == 'Move' ){
 				Vect3_Copy( prevMouseMoveFeaturePixPos, featurePix.physObj.AABB.center );
 				let offset = Vect3_CopyNew( featurePix.physObj.AABB.center );
-				offset[0] = event.offsetX - offset[0];
-				offset[1] = event.offsetY - offset[1];
+				offset[0] = event.X - offset[0];
+				offset[1] = event.Y - offset[1];
 				offset[2] = 0;
 				
 				avgMoveSum[0] = avgMoveSum[0] * 0.9 + offset[0] * 0.5;
@@ -235,7 +288,8 @@ function preformMouseEvent(event){
 				//" eventmove position " + featurePix.physObj.AABB.center );
 			}
 			lastMovedFeaturePix = retVal_feature[1];
-		}else if( event.type == 'mouseup' ){
+		}else if( event.type == 'Up' ){
+			//releasePointerLock(lFetCanvas);
 			let featurePixCntr = Vect3_CopyNew( featurePix.physObj.AABB.center );
 			DTPrintf("avgMoveSum " + avgMoveSum + 
 			" featurePixCntr " + featurePixCntr +
@@ -244,7 +298,7 @@ function preformMouseEvent(event){
 			featurePix.physObj.linVel[1] = avgMoveSum[1] * 1/dT;
 			featurePix.physObj.linVel[2] = 0;
 			avgMoveSum = Vect3_NewZero();
-			DTPrintf("eventup offset " + event.offsetX + " " + event.offsetY + 
+			DTPrintf("eventup offset " + event.X + " " + event.Y + 
 					" linVel " + Vect_ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
 					" avgMoveSum " + Vect_ToFixedPrecisionString(avgMoveSum, 3) +
 					" featurePix linVel " + Vect_ToFixedPrecisionString(featurePix.physObj.linVel, 3) +
@@ -254,15 +308,15 @@ function preformMouseEvent(event){
 	
 	}else{
 		//clicked on empty space
-		if( event.type == 'mousedown' ){
+		if( event.type == 'Down' ){
 			let dblPressTime = time - lastEmptySpacePressTime;
 			if( dblPressTime > 0 && dblPressTime < DblPrssMaxSecs ){
-				DTPrintf("insert at pos " + event.offsetX + ":" + event.offsetY, "add obj" );
+				DTPrintf("insert at pos " + event.X + ":" + event.Y, "add obj" );
 				let newFeaturePix = InsertFeaturePixAtCoord( 
-					event.offsetX, event.offsetY, 
+					event.X, event.Y, 
 					featureLists[0][featureList0Keys[0]], 
 					leftFeatureOctTree, time );
-				DTPrintf("insert at pos " + event.offsetX + ":" + event.offsetY +
+				DTPrintf("insert at pos " + event.X + ":" + event.Y +
 						 " aabb cntr " +  newFeaturePix.AABB.center +
 						 " featurepix uid " + newFeaturePix.uid.val, "add obj", "color:purple" );
 				
@@ -301,10 +355,14 @@ function CanvasUpdate(){
 		
 		if( simPhys ){
 			DTPrintf("=====Apply User input " + time.toPrecision(3), "loop");
-			while( queuedMouseEvents.length > 0 ){
-				let mevent = queuedMouseEvents.shift(1);
+			//if( queuedMouseEvents.length < 1 ){
+			//	releasePointerLock(lFetCanvas);
+			//}else{
+			while( lFetCanvas.pointerHandler.queuedEvents.length > 0 ){
+				let mevent = lFetCanvas.pointerHandler.queuedEvents.shift(1);
 				preformMouseEvent(mevent);
 			}
+			//}
 			DTPrintf("=====detect colis " + time.toPrecision(3), "loop");
 			leftFeatureOctTree.ApplyExternAccelAndDetectCollisions(time);
 			DTPrintf("=====link graphs " + time.toPrecision(3), "loop");
