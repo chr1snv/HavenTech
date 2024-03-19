@@ -87,36 +87,69 @@ function PointerHandler(canvIn){
 //mouse cordinates for canvas
 //http://stackoverflow.com/questions/55677/how-do-i-get-the-coordinates-of-a-mouse-click-on-a-canvas-element
 function relMouseCoords(e, eX,eY){
-	if(e.offsetX && e.offsetY){
-		e.canvasX = e.offsetX;
-		e.canvasY = e.offsetY;
-	}
-
 	
+	
+	//https://www.delftstack.com/howto/javascript/javascript-get-screen-size/
+	// Get the browser window size (gets smaller as zoom percentage increases)
+	let windowWidth = window.innerWidth;
+	let windowHeight = window.innerHeight;
+	
+	let xScale = e.target.width / e.target.offsetWidth;
+	let yScale = e.target.height / e.target.offsetHeight;
+	
+	
+	let totalOffsetX = 0;
+	let totalOffsetY = 0;
+	let canvasX = 0;
+	let canvasY = 0;
+	let currentElement = this;
+	
+	do{
+	    totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+	    totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+	}
+	while(currentElement = currentElement.offsetParent)
+	    
+	e.canvasX = eX - totalOffsetX;
+	e.canvasY = eY - totalOffsetY;
+	
+	console.log( "eCanv \t" + e.canvasX.toFixed(2) + " : " + e.canvasY.toFixed(2) );
+	
+	let dontYScale = false;
 	if(document.fullscreenElement){
-		//if( window.orientation == 0 ) //portrait
-		let minY = e.target.screenWidth / 
 		
-		e.canvasX = e.screenX / window.screen.width * e.target.width;
-		e.canvasY = e.screenY / window.screen.height * e.target.height;
-		return;
+		
+		e.canvasX = (e.clientX - e.target.offsetLeft);
+		e.canvasY = (e.clientY - e.target.offsetTop);
+		
+		
+		let wdth = e.target.offsetWidth;
+		let hgth = e.target.offsetHeight;
+		
+		//if the scale isn't equal, the offset height or width is larger than the canvas (padded)
+		//assume x and y scale should be equal
+		if( xScale < yScale ){ //width padding
+			wdth = e.target.width / yScale;
+			xScale = yScale; 
+		}else{
+			hgth = e.target.height / xScale;
+			yScale = xScale;
+		}
+		
+		let minX = ( (window.innerWidth - wdth) / 2);
+		let minY = ( (window.innerHeight - hgth) / 2);
+		
+		
+		e.canvasX = (e.canvasX - minX); // / e.target.offsetWidth * e.target.width;
+		e.canvasY = (e.canvasY - minY); // / e.target.height;
+		
+		
 	}
 	
-
-    let totalOffsetX = 0;
-    let totalOffsetY = 0;
-    let canvasX = 0;
-    let canvasY = 0;
-    let currentElement = this;
-    
-    do{
-        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-    }
-    while(currentElement = currentElement.offsetParent)
-        
-    e.canvasX = eX - totalOffsetX;
-    e.canvasY = eY - totalOffsetY;
+	
+	e.canvasX *= xScale;
+	e.canvasY *= yScale;
+	
 }
 HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
